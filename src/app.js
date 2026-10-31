@@ -29,6 +29,7 @@ import userUploadRoutes from './routes/userUploadRoutes.js';
 import pdfCatalogRoutes from './routes/pdfCatalogRoutes.js';
 import chatbotRoutes from './routes/chatbotRoutes.js';
 import { seedDatabase } from './seed/seed.js';
+import { connectDB } from './config/db.js';
 
 const app = express();
 
@@ -86,6 +87,16 @@ const authLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   message: { success: false, message: 'Too many requests, please try again later.' },
+});
+
+// Ensure database connection across all serverless and persistent invocations
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+  } catch (error) {
+    console.error('[Database Connection Middleware Warning]', error.message);
+  }
+  next();
 });
 
 // API Routes Mounting
