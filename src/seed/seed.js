@@ -158,7 +158,7 @@ export const seedDatabase = async () => {
       name: 'Bush Pulleys & Taper Bushes',
       slug: 'bush-pulleys',
       description: 'Dynamically balanced Fenner taper lock pulleys, standard grooves, and precision 2517 taper lock bushes for industrial shafts.',
-      image: 'https://images.unsplash.com/photo-1504917599217-d4dc5ebe6122?auto=format&fit=crop&w=800&q=80',
+      image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80',
       icon: 'Cog',
       displayOrder: 3,
     });
@@ -822,7 +822,7 @@ export const seedDatabase = async () => {
         serviceType: 'pulley',
         shortDescription: 'Fenner Taper Lock Pulley 200 mm Pitch Dia x 3 Grooves C-Section with 2517 Taper Bush (60mm Bore).',
         fullDescription: 'Fenner Taper Lock Dual Duty Pulley 200 X 3C is dynamically balanced to ISO 1940 standards. Accommodates standard Fenner 2517 Taper Lock Bush with a 60mm finished bore and keyway. Easy keyless mounting and dismounting without shaft scoring. Includes 46% discount off Fenner price list with Delhivery delivery included.',
-        mainImage: 'https://images.unsplash.com/photo-1504917599217-d4dc5ebe6122?auto=format&fit=crop&w=800&q=80',
+        mainImage: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80',
         features: [
           'Pitch Diameter: 200 mm, Number of Grooves: 3 (C Section)',
           'Taper Bush Size: 2517, Finished Bore: 60 mm with standard keyway',
@@ -1148,44 +1148,77 @@ export const seedDatabase = async () => {
 
     console.log('[Seed] Created all products with packages.');
 
-    // 4. Create Hero Banners
+    // 4. Create Hero Banners (6 Prominent Slides featuring Grander's Belts & Industrial Lineup)
     await Banner.create([
       {
-        title: 'India’s Trusted Power Transmission & Bearings Distributor',
-        subtitle: 'Authorized dealer of PIX, NBC, HCH, Fenner, Timken, and SKF. Direct wholesale pricing with fast pan-India delivery.',
-        badgeText: '45% - 48% OFF MRP LIST',
-        image: 'https://images.unsplash.com/photo-1504917599217-d4dc5ebe6122?auto=format&fit=crop&w=1600&q=80',
-        ctaText: 'Explore Catalog',
-        ctaLink: '/services',
+        title: "Grander's Belts & Power Transmission",
+        subtitle: 'High-tensile industrial Grander belts, angle grinder drive belts, and classical wedge belts. Oil, heat, and vibration resistant for heavy workshop and plant duty.',
+        badgeText: "GRANDER'S BELTS & V-BELTS",
+        image: 'https://images.unsplash.com/photo-1572981779307-38b8cabb2407?auto=format&fit=crop&w=1600&q=80',
+        ctaText: 'Browse Grander Belts',
+        ctaLink: '/services?brand=PIX',
         secondaryCtaText: 'Request Bulk Quote (RFQ)',
         secondaryCtaLink: '/rfq',
         displayOrder: 1,
       },
       {
-        title: 'Free Delhivery Freight Included on Major Makes',
-        subtitle: 'Get 45% to 48% discount from official MRP on PIX Belts, NBC Bearings, HCH Ball Bearings, and Fenner Bush Pulleys with delivery included.',
-        badgeText: 'FREE DELHIVERY INCLUDED',
-        image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=1600&q=80',
-        ctaText: 'View Price List',
-        ctaLink: '/mrp-pricing',
-        secondaryCtaText: 'Search Part Numbers',
-        secondaryCtaLink: '/services',
+        title: 'PIX Industrial Belts — SPC, 8V & C-70',
+        subtitle: 'Authorized dealer of PIX Transmissions Ltd. Narrow wedge, raw edge cogged, and banded belts with factory matched precision.',
+        badgeText: '45% - 48% OFF MRP LIST',
+        image: 'https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?auto=format&fit=crop&w=1600&q=80',
+        ctaText: 'Explore PIX Belts',
+        ctaLink: '/services?brand=PIX',
+        secondaryCtaText: 'View Discount Matrix',
+        secondaryCtaLink: '/mrp-pricing',
         displayOrder: 2,
       },
       {
-        title: 'SKF Genuine Bearings — National & International Stock',
-        subtitle: 'National (SKF India) & International (Imported) stock available with 100% authenticity guarantee and flat 10% discount from MRP.',
-        badgeText: 'SKF GENUINE GUARANTEE',
-        image: 'https://images.unsplash.com/photo-1504917599217-d4dc5ebe6122?auto=format&fit=crop&w=1600&q=80',
+        title: 'Chrome Steel Deep Groove Ball Bearings',
+        subtitle: 'Premium deep groove ball bearings from SKF, NBC, and HCH (6200, 6300, 6400 series) with high-speed dual seals (2RS / ZZ).',
+        badgeText: 'ELECTRIC MOTOR QUALITY (EMQ)',
+        image: 'https://images.unsplash.com/photo-1590674899484-d5640e854abe?auto=format&fit=crop&w=1600&q=80',
+        ctaText: 'Browse Ball Bearings',
+        ctaLink: '/services',
+        secondaryCtaText: 'Download Price List',
+        secondaryCtaLink: '/mrp-pricing',
+        displayOrder: 3,
+      },
+      {
+        title: 'Heavy Duty Taper & Spherical Roller Bearings',
+        subtitle: 'Engineered for high shock loads, crusher plants, and heavy vibration. 100% authentic with factory serial tracing and Mill Test Certificates (MTC).',
+        badgeText: 'TIMKEN & NBC HEAVY SERIES',
+        image: 'https://images.unsplash.com/photo-1581092795360-fd1ca04f0952?auto=format&fit=crop&w=1600&q=80',
+        ctaText: 'Browse Roller Bearings',
+        ctaLink: '/services?brand=Timken',
+        secondaryCtaText: 'Custom RFQ',
+        secondaryCtaLink: '/rfq',
+        displayOrder: 4,
+      },
+      {
+        title: 'Fenner Dual-Duty Pulleys & Taper Bushes',
+        subtitle: 'J.K. Fenner taper-lock bush pulleys (SPA, SPB, SPC, 2517, 2012) for vibration-free power transmission across electric motors and pumps.',
+        badgeText: 'CAST IRON DYNAMICALLY BALANCED',
+        image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=1600&q=80',
+        ctaText: 'Explore Pulleys',
+        ctaLink: '/services?brand=Fenner',
+        secondaryCtaText: 'Technical Inquiry',
+        secondaryCtaLink: '/contact',
+        displayOrder: 5,
+      },
+      {
+        title: 'SKF Genuine Bearings — National & Imported',
+        subtitle: 'National (SKF India) & International (Imported European) stock with strict 10% discount from MRP and QR batch authentication.',
+        badgeText: 'SKF 100% GENUINE GUARANTEE',
+        image: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=1600&q=80',
         ctaText: 'Browse SKF Bearings',
         ctaLink: '/services?brand=SKF',
         secondaryCtaText: 'Custom RFQ',
         secondaryCtaLink: '/rfq',
-        displayOrder: 3,
+        displayOrder: 6,
       },
     ]);
 
-    console.log('[Seed] Created 3 Industrial Hero Banners.');
+    console.log('[Seed] Created 6 Industrial Hero Banners.');
 
     // 5. Create Coupons
     await Coupon.create([
