@@ -109,6 +109,17 @@ app.use('/api/v1/user-uploads', userUploadRoutes);
 app.use('/api/v1/pdf-catalog', pdfCatalogRoutes);
 app.use('/api/v1/chatbot', chatbotRoutes);
 
+// Root endpoint
+app.get('/', (req, res) => {
+  res.json({
+    success: true,
+    message: 'BizZolution Backend REST API is live and running successfully!',
+    environment: process.env.NODE_ENV || 'production',
+    healthCheck: '/api/v1/health',
+    endpoints: '/api/v1',
+  });
+});
+
 // Health check endpoint
 app.get('/api/v1/health', (req, res) => {
   res.json({
