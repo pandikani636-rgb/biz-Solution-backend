@@ -75,7 +75,7 @@ const serviceSchema = new mongoose.Schema(
     mainImage: {
       type: String,
       required: [true, 'Please provide main service image'],
-      default: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=800&q=80',
+      default: 'https://images.unsplash.com/photo-1590674899484-d5640e854abe?auto=format&fit=crop&w=800&q=80',
     },
     galleryImages: {
       type: [String],
