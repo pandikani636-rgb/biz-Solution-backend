@@ -28,6 +28,7 @@ import invoiceRoutes from './routes/invoiceRoutes.js';
 import userUploadRoutes from './routes/userUploadRoutes.js';
 import pdfCatalogRoutes from './routes/pdfCatalogRoutes.js';
 import chatbotRoutes from './routes/chatbotRoutes.js';
+import { seedDatabase } from './seed/seed.js';
 
 const app = express();
 
@@ -127,6 +128,21 @@ app.get('/api/v1/health', (req, res) => {
     timestamp: new Date().toISOString(),
     service: 'BizZolution REST API',
   });
+});
+
+// Database Seed endpoint to populate all 13 collections into MongoDB Atlas
+app.get('/api/v1/seed', async (req, res) => {
+  try {
+    const result = await seedDatabase();
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to seed database into MongoDB Atlas',
+      error: error.message,
+      troubleshooting: 'Please ensure 0.0.0.0/0 is whitelisted in MongoDB Atlas -> Network Access',
+    });
+  }
 });
 
 // Error handling

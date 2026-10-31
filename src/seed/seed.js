@@ -20,11 +20,15 @@ import { ensureMongoRunning } from '../config/mongoLauncher.js';
 
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/biz_zolution';
 
-const seedDatabase = async () => {
+export const seedDatabase = async () => {
   try {
-    await ensureMongoRunning(MONGODB_URI);
-    await mongoose.connect(MONGODB_URI);
-    console.log(`[Seed] Connected to MongoDB at ${MONGODB_URI}`);
+    if (mongoose.connection.readyState < 1) {
+      if (!process.env.VERCEL) {
+        await ensureMongoRunning(MONGODB_URI);
+      }
+      await mongoose.connect(MONGODB_URI, { serverSelectionTimeoutMS: 15000 });
+    }
+    console.log(`[Seed] Connected to MongoDB at ${MONGODB_URI.replace(/\/\/[^:]+:[^@]+@/, '//***:***@')}`);
 
     // Clear existing collections for a clean, deterministic seed
     await Promise.all([
@@ -1293,11 +1297,29 @@ const seedDatabase = async () => {
     });
 
     console.log('[Seed] Database successfully seeded with full industrial catalog!');
-    process.exit(0);
+    return {
+      success: true,
+      message: 'Database successfully seeded with full industrial catalog!',
+      collections: {
+        users: 3,
+        categories: 6,
+        services: 12,
+        banners: 3,
+        coupons: 5,
+        testimonials: 4,
+        faqs: 8,
+      },
+    };
   } catch (error) {
     console.error('[Seed Error]', error);
-    process.exit(1);
+    throw error;
   }
 };
 
-seedDatabase();
+// Auto-run if executed directly via CLI (e.g., `npm run seed`)
+const isCLI = process.argv[1] && process.argv[1].replace(/\\/g, '/').includes('seed/seed.js');
+if (isCLI) {
+  seedDatabase()
+    .then(() => process.exit(0))
+    .catch(() => process.exit(1));
+}
