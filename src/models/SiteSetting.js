@@ -4,31 +4,31 @@ const siteSettingSchema = new mongoose.Schema(
   {
     siteName: {
       type: String,
-      default: 'BizZolution',
+      default: 'Balumuni and Associates',
     },
     tagLine: {
       type: String,
-      default: 'Your Comprehensive Business & Lifestyle Solutions Partner',
+      default: 'Industrial Power Transmission & Bearings Solutions Partner',
     },
     logo: {
       type: String,
-      default: '',
+      default: '/bm-logo.png',
     },
     favicon: {
       type: String,
-      default: '',
+      default: '/bm-logo.png',
     },
     contactEmail: {
       type: String,
-      default: 'contact@bizzolution.com',
+      default: 'balumuniandassociates@gmail.com',
     },
     contactPhone: {
       type: String,
-      default: '+91 98765 43210',
+      default: '+91-74184 23238 / +91 98426 70320',
     },
     address: {
       type: String,
-      default: 'Tech Hub Boulevard, Cyber City, Bangalore - 560100',
+      default: '45B/16 Noorullah Mall, Oothumalai Paradesimadam Street, Srivilliputtur, Virudhunagar Dist, Tamilnadu - 626125',
     },
     businessHours: {
       type: String,
@@ -58,17 +58,17 @@ const siteSettingSchema = new mongoose.Schema(
       default: false,
     },
     metaDefaults: {
-      title: { type: String, default: 'BizZolution | All-in-One Multi-Service Platform' },
+      title: { type: String, default: 'Balumuni and Associates | Industrial Power Transmission & Bearings' },
       description: {
         type: String,
-        default: 'Discover corporate, travel, recharge, logistics, and legal services in one seamless portal.',
+        default: 'Authorised dealers and stockists of industrial belts, bearings, gears, and motors.',
       },
     },
     aboutUsSection: {
-      title: { type: String, default: 'Empowering Businesses and Individuals with End-to-End Solutions' },
+      title: { type: String, default: 'Balumuni and Associates - Quality Power Transmission & Bearings' },
       description: {
         type: String,
-        default: 'BizZolution connects modern customers with verified enterprise services, seamless automated workflows, and trusted delivery experts across the nation.',
+        default: 'Supplying leading industrial brands like PIX, JK Fenner, SKF, FAG, Timken, NTN, Shanthi Gears, Siemens, ABB, Bharat Bijlee with reliable stock and technical support.',
       },
       yearsOfExperience: { type: Number, default: 12 },
       clientsServed: { type: Number, default: 25000 },
