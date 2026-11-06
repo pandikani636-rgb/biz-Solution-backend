@@ -9,11 +9,18 @@ export const uploadUserImage = async (req, res, next) => {
     }
 
     const {
+      companyName = '',
       customerName,
+      contactPerson,
       customerEmail,
+      email,
       customerPhone,
-      city = 'Not specified',
-      partNotes = '',
+      phone,
+      city,
+      location,
+      gstNumber = '',
+      partNotes,
+      notes,
       width,
       height,
     } = req.body;
@@ -33,16 +40,21 @@ export const uploadUserImage = async (req, res, next) => {
 
     const fileUrl = await processUploadedFile(req.file, req);
 
-    const name = customerName || (req.user ? req.user.name : 'Guest Customer');
-    const email = customerEmail || (req.user ? req.user.email : '');
-    const phone = customerPhone || (req.user ? req.user.phone : '');
+    const personName = contactPerson || customerName || (req.user ? req.user.name : 'Guest Customer');
+    const userEmail = email || customerEmail || (req.user ? req.user.email : '');
+    const userPhone = phone || customerPhone || (req.user ? req.user.phone : '');
+    const loc = location || city || 'Not specified';
+    const noteText = notes || partNotes || '';
 
     const record = await UserImageUpload.create({
       user: req.user ? req.user._id : null,
-      customerName: name,
-      customerEmail: email,
-      customerPhone: phone,
-      city: city || 'Not specified',
+      companyName: companyName.trim(),
+      customerName: personName,
+      contactPerson: personName,
+      customerEmail: userEmail,
+      customerPhone: userPhone,
+      gstNumber: gstNumber.trim(),
+      city: loc,
       imageUrl: fileUrl,
       originalFileName: req.file.originalname,
       fileSize: req.file.size,
@@ -52,7 +64,7 @@ export const uploadUserImage = async (req, res, next) => {
         megapixels,
       },
       status: 'pending',
-      partNotes: partNotes || '',
+      partNotes: noteText,
     });
 
     // Notify administrators

@@ -109,8 +109,8 @@ export const handleChatbotQuery = async (req, res, next) => {
       const address = '45B/16 Noorullah Mall, Oothumalai Paradesimadam Street, Srivilliputtur, Virudhunagar Dist, Tamilnadu – 626125';
 
       reply = isTamil
-        ? `**எங்களை தொடர்பு கொள்ள:**\n\n📞 தொலைபேசி: **7418423238 / 9842670320**\n✉️ மின்னஞ்சல்: **${email}**\n📍 தலைமை அலுவலகம்: ${address}\n⏰ வேலை நேரம்: திங்கள் - சனி (9:00 AM - 7:00 PM IST)\n\nGSTIN: 33HONPK5547G2Z`
-        : `**Contact Balumuni and Associates:**\n\n📞 Technical & Sales Desk: **7418423238 / 9842670320**\n✉️ Direct Email: **${email}**\n📍 Headquarters: ${address}\n⏰ Working Hours: Monday - Saturday (9:00 AM - 7:00 PM IST)\n\nGSTIN: 33HONPK5547G2Z`;
+        ? `**எங்களை தொடர்பு கொள்ள:**\n\n📞 தொலைபேசி: **7418423238 / 9842670320**\n✉️ மின்னஞ்சல்: **${email}**\n📍 தலைமை அலுவலகம்: ${address}\n⏰ வேலை நேரம்: திங்கள் - சனி (9:00 AM - 7:00 PM IST)\n\nGSTIN: 33HONPK5547G2ZK`
+        : `**Contact Balumuni and Associates:**\n\n📞 Technical & Sales Desk: **7418423238 / 9842670320**\n✉️ Direct Email: **${email}**\n📍 Headquarters: ${address}\n⏰ Working Hours: Monday - Saturday (9:00 AM - 7:00 PM IST)\n\nGSTIN: 33HONPK5547G2ZK`;
       suggestions = ['Contact Page', 'Submit Message', 'Request RFQ'];
       quickLink = { label: 'Contact Us', url: '/contact' };
     }

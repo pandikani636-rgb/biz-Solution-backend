@@ -8,10 +8,20 @@ const userImageUploadSchema = new mongoose.Schema(
       default: null,
       index: true,
     },
+    companyName: {
+      type: String,
+      trim: true,
+      default: '',
+    },
     customerName: {
       type: String,
       required: true,
       trim: true,
+    },
+    contactPerson: {
+      type: String,
+      trim: true,
+      default: '',
     },
     customerEmail: {
       type: String,
@@ -19,6 +29,11 @@ const userImageUploadSchema = new mongoose.Schema(
       default: '',
     },
     customerPhone: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    gstNumber: {
       type: String,
       trim: true,
       default: '',

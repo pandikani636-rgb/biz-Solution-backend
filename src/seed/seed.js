@@ -149,7 +149,7 @@ export const seedDatabase = async () => {
       name: 'Power Transmission Belts',
       slug: 'belts',
       description: 'Heavy duty classical V-belts (C Section), metric wedge belts (SPC), 8V high capacity belts, and power transmission belts from PIX and Fenner.',
-      image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80',
+      image: '/banners/img4.jpg',
       icon: 'RotateCw',
       displayOrder: 2,
     });
@@ -158,7 +158,7 @@ export const seedDatabase = async () => {
       name: 'Bush Pulleys & Taper Bushes',
       slug: 'bush-pulleys',
       description: 'Dynamically balanced Fenner taper lock pulleys, standard grooves, and precision 2517 taper lock bushes for industrial shafts.',
-      image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80',
+      image: '/banners/img4.jpg',
       icon: 'Cog',
       displayOrder: 3,
     });
@@ -822,7 +822,7 @@ export const seedDatabase = async () => {
         serviceType: 'pulley',
         shortDescription: 'Fenner Taper Lock Pulley 200 mm Pitch Dia x 3 Grooves C-Section with 2517 Taper Bush (60mm Bore).',
         fullDescription: 'Fenner Taper Lock Dual Duty Pulley 200 X 3C is dynamically balanced to ISO 1940 standards. Accommodates standard Fenner 2517 Taper Lock Bush with a 60mm finished bore and keyway. Easy keyless mounting and dismounting without shaft scoring. Includes 46% discount off Fenner price list with Delhivery delivery included.',
-        mainImage: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80',
+        mainImage: '/banners/img4.jpg',
         features: [
           'Pitch Diameter: 200 mm, Number of Grooves: 3 (C Section)',
           'Taper Bush Size: 2517, Finished Bore: 60 mm with standard keyway',
@@ -1065,7 +1065,7 @@ export const seedDatabase = async () => {
         mainImage: p.mainImage,
         galleryImages: [
           'https://images.unsplash.com/photo-1590674899484-d5640e854abe?auto=format&fit=crop&w=800&q=80',
-          'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80',
+          '/banners/img4.jpg',
         ],
         taxRate: 18,
         processingTime: 'Same Day Dispatch',
