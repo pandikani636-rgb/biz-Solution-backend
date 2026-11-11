@@ -29,6 +29,7 @@ import userUploadRoutes from './routes/userUploadRoutes.js';
 import pdfCatalogRoutes from './routes/pdfCatalogRoutes.js';
 import chatbotRoutes from './routes/chatbotRoutes.js';
 import purchaseRoutes from './routes/purchaseRoutes.js';
+import ticketBookingRoutes from './routes/ticketBookingRoutes.js';
 import { seedDatabase } from './seed/seed.js';
 import { connectDB } from './config/db.js';
 
@@ -122,6 +123,7 @@ app.use('/api/v1/user-uploads', userUploadRoutes);
 app.use('/api/v1/pdf-catalog', pdfCatalogRoutes);
 app.use('/api/v1/chatbot', chatbotRoutes);
 app.use('/api/v1/purchases', purchaseRoutes);
+app.use('/api/v1/ticket-bookings', ticketBookingRoutes);
 
 // Root endpoint
 app.get('/', (req, res) => {
