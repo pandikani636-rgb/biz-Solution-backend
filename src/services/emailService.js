@@ -19,6 +19,9 @@ const initTransporter = () => {
   }
 };
 
+
+
+
 initTransporter();
 
 export const sendEmail = async ({ to, subject, html, text }) => {

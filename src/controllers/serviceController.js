@@ -40,9 +40,22 @@ export const getServices = async (req, res, next) => {
       query.serviceType = serviceType;
     }
 
-    // Brand filter
+    // Brand filter (supports aliases like TMB Ken/Timken, JK Fenner/Fenner, ABB/ABB Motors, Vignesh/Vignessh)
     if (brand && brand !== 'all') {
-      query.brand = { $regex: new RegExp(`^${brand}$`, 'i') };
+      let brandPattern = `^${brand}$`;
+      const cleanBrand = brand.trim().toLowerCase();
+      if (cleanBrand.includes('timken') || cleanBrand.includes('tmb ken')) {
+        brandPattern = 'timken|tmb ken';
+      } else if (cleanBrand.includes('fenner')) {
+        brandPattern = 'fenner|jk fenner';
+      } else if (cleanBrand.includes('abb')) {
+        brandPattern = 'abb|abb motors';
+      } else if (cleanBrand.includes('vignesh') || cleanBrand.includes('vignessh')) {
+        brandPattern = 'vignesh|vignessh';
+      } else if (cleanBrand.includes('shanthi')) {
+        brandPattern = 'shanthi';
+      }
+      query.brand = { $regex: new RegExp(brandPattern, 'i') };
     }
 
     // Section filter

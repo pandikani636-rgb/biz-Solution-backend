@@ -10,7 +10,7 @@
     "db:start": "node scripts/start-db.js",
     "db:stop": "node scripts/stop-db.js",
     "seed": "node src/seed/seed.js",
-    "test": "node --test test/pricing.test.js test/coupon.test.js test/api.test.js test/pdfCatalog.test.js test/ticketBooking.test.js"
+    "test": "node --test test/pricing.test.js test/coupon.test.js test/api.test.js test/pdfCatalog.test.js test/ticketBooking.test.js test/newFeatures.test.js"
   },
   "keywords": [
     "bizzolution",

@@ -30,6 +30,9 @@ import pdfCatalogRoutes from './routes/pdfCatalogRoutes.js';
 import chatbotRoutes from './routes/chatbotRoutes.js';
 import purchaseRoutes from './routes/purchaseRoutes.js';
 import ticketBookingRoutes from './routes/ticketBookingRoutes.js';
+import scrapPriceRoutes from './routes/scrapPriceRoutes.js';
+import advertisementRoutes from './routes/advertisementRoutes.js';
+import labourInsuranceRoutes from './routes/labourInsuranceRoutes.js';
 import { seedDatabase } from './seed/seed.js';
 import { connectDB } from './config/db.js';
 
@@ -124,6 +127,9 @@ app.use('/api/v1/pdf-catalog', pdfCatalogRoutes);
 app.use('/api/v1/chatbot', chatbotRoutes);
 app.use('/api/v1/purchases', purchaseRoutes);
 app.use('/api/v1/ticket-bookings', ticketBookingRoutes);
+app.use('/api/v1/scrap-prices', scrapPriceRoutes);
+app.use('/api/v1/advertisements', advertisementRoutes);
+app.use('/api/v1/labour-insurance', labourInsuranceRoutes);
 
 // Root endpoint
 app.get('/', (req, res) => {

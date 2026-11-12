@@ -86,9 +86,9 @@ export const handleChatbotQuery = async (req, res, next) => {
       cleanQuery.includes('தள்ளுபடி')
     ) {
       reply = isTamil
-        ? `**எங்கள் மொத்த விலை தள்ளுபடி கொள்கை:**\n\n• **PIX, NBC, HCH, Fenner & Timken**: அதிகாரப்பூர்வ MRP பட்டியலிலிருந்து **45% - 48% நேரடி தள்ளுபடி**.\n• **SKF**: உலகளாவிய கடுமையான தரத்துடன் **10% நேரடி தள்ளுபடி**.\n• **டெல்லிவரி சரக்குக் கட்டணம்**: 100% இலவசம் (Free Delhivery Freight).\n• **புதிய வாடிக்கையாளர் விலை முறை**: புதிதாகப் பதிவு செய்யும் வாடிக்கையாளர்களுக்கு பிரத்யேக சதவீத விகித முறை பொருந்தும், ஏற்கனவே உள்ள பழைய வாடிக்கையாளர்களுக்கு இந்த கூடுதல் கட்டணம் விதிக்கப்படாது!`
-        : `**Wholesale Pricing & Discount Policy:**\n\n• **Standard Makes (PIX, NBC, HCH, Fenner, Timken)**: Massive **45% - 48% OFF MRP List** with Free Delhivery freight included.\n• **SKF Genuine**: Strictly **Flat 10% OFF MRP** with factory authentication.\n• **GST Tax Invoices**: 18% Input Tax Credit provided on every purchase.\n• **New User Pricing Rate**: Newly registered clients receive an onboarding percentage-based rate, whereas existing users continue at standard wholesale rates without any surcharge!`;
-      suggestions = ['Calculate Net Price', 'Request Bulk RFQ', 'Delhivery Shipping'];
+        ? `**எங்கள் மொத்த விலை தள்ளுபடி கொள்கை:**\n\n• **PIX, NBC, HCH, Fenner & Timken**: அதிகாரப்பூர்வ MRP பட்டியலிலிருந்து **45% - 48% நேரடி தள்ளுபடி**.\n• **SKF**: உலகளாவிய கடுமையான தரத்துடன் **10% நேரடி தள்ளுபடி**.\n• **ஜிஎஸ்டி இன்வாய்ஸ்**: ஒவ்வொரு கொள்முதலுக்கும் 18% உள்ளீட்டு வரி வரவு (ITC).\n• **புதிய வாடிக்கையாளர் விலை முறை**: புதிதாகப் பதிவு செய்யும் வாடிக்கையாளர்களுக்கு பிரத்யேக சதவீத விகித முறை பொருந்தும், ஏற்கனவே உள்ள பழைய வாடிக்கையாளர்களுக்கு இந்த கூடுதல் கட்டணம் விதிக்கப்படாது!`
+        : `**Wholesale Pricing & Discount Policy:**\n\n• **Standard Makes (PIX, NBC, HCH, Fenner, Timken)**: Massive **45% - 48% OFF MRP List**.\n• **SKF Genuine**: Strictly **Flat 10% OFF MRP** with factory authentication.\n• **GST Tax Invoices**: 18% Input Tax Credit provided on every purchase.\n• **New User Pricing Rate**: Newly registered clients receive an onboarding percentage-based rate, whereas existing users continue at standard wholesale rates without any surcharge!`;
+      suggestions = ['Calculate Net Price', 'Request Bulk RFQ', 'Tracked Shipping'];
       quickLink = { label: 'Live MRP Calculator', url: '/price-list' };
     }
 
@@ -134,8 +134,8 @@ export const handleChatbotQuery = async (req, res, next) => {
     // 7. Fallback Intelligent Help
     else {
       reply = isTamil
-        ? `உங்கள் கேள்விக்கு உதவ மகிழ்ச்சி அடைகிறேன். BizZolution / Balumuni & Associates மூலம் நீங்கள்:\n\n• PIX, NBC, HCH, Fenner, Timken, SKF பேரிங்ஸ் & பெல்ட்களை 45%-48% தள்ளுபடியில் பெறலாம்.\n• இலவச டெல்லிவரி போக்குவரத்து பெறலாம்.\n• உங்கள் உதிரிபாக படங்களை (20 MP வரை) பதிவேற்றி விலை பெறலாம்.\n• எங்களை 7418423238 என்ற எண்ணில் நேரடியாக அழைக்கலாம்.`
-        : `I'd be glad to help with that. At Balumuni and Associates (BizZolution), we supply:\n\n• Genuine industrial bearings and belts from PIX, NBC, HCH, Fenner, Timken, and SKF at 45%-48% off MRP with free Delhivery freight.\n• Instant RFQ quotations within 1 hour.\n• High-resolution specification photo upload (up to 20 MP) on the Home page.\n• Direct technical assistance at 7418423238.`;
+        ? `உங்கள் கேள்விக்கு உதவ மகிழ்ச்சி அடைகிறேன். Balumuni & Associates மூலம் நீங்கள்:\n\n• PIX, NBC, HCH, Fenner, Timken, SKF பேரிங்ஸ் & பெல்ட்களை 45%-48% தள்ளுபடியில் பெறலாம்.\n• உங்கள் உதிரிபாக படங்களை (20 MP வரை) பதிவேற்றி விலை பெறலாம்.\n• எங்களை 7418423238 என்ற எண்ணில் நேரடியாக அழைக்கலாம்.`
+        : `I'd be glad to help with that. At Balumuni and Associates, we supply:\n\n• Genuine industrial bearings and belts from PIX, NBC, HCH, Fenner, Timken, and SKF at 45%-48% off MRP.\n• Instant RFQ quotations within 1 hour.\n• High-resolution specification photo upload (up to 20 MP) on the Home page.\n• Direct technical assistance at 7418423238.`;
       suggestions = ['Browse Products', 'MRP Price List', 'Request RFQ', 'Contact Support'];
       quickLink = { label: 'Explore Products', url: '/services' };
     }

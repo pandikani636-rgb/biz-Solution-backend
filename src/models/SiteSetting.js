@@ -6,6 +6,14 @@ const siteSettingSchema = new mongoose.Schema(
       type: String,
       default: 'Balumuni and Associates',
     },
+    siteNameFirstPart: {
+      type: String,
+      default: 'Balumuni',
+    },
+    siteNameRemainingPart: {
+      type: String,
+      default: 'and Associates',
+    },
     tagLine: {
       type: String,
       default: 'Industrial Power Transmission & Bearings Solutions Partner',
@@ -29,6 +37,26 @@ const siteSettingSchema = new mongoose.Schema(
     address: {
       type: String,
       default: '45B/16 Noorullah Mall, Oothumalai Paradesimadam Street, Srivilliputtur, Virudhunagar Dist, Tamilnadu - 626125',
+    },
+    googleMapsLocation: {
+      type: String,
+      default: '45B/16 Noorullah Mall, Oothumalai Paradesimadam Street, Srivilliputtur, Virudhunagar Dist, Tamilnadu - 626125',
+    },
+    googleMapsEmbedUrl: {
+      type: String,
+      default: '',
+    },
+    footerDescription: {
+      type: String,
+      default: 'Authorized industrial distributor for world-class mechanical transmission belts, bearings, taper pulleys, and industrial equipment.',
+    },
+    proprietorName: {
+      type: String,
+      default: 'K. Karthick Kumar',
+    },
+    gstin: {
+      type: String,
+      default: '33HONPK5547G2ZK',
     },
     businessHours: {
       type: String,

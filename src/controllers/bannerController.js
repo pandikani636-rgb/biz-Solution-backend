@@ -32,6 +32,8 @@ export const createBanner = async (req, res, next) => {
   }
 };
 
+
+
 export const updateBanner = async (req, res, next) => {
   try {
     const banner = await Banner.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
