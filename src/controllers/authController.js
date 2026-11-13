@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import { User } from '../models/User.js';
 import { ROLES } from '../config/constants.js';
+import { sendWelcomeEmail } from '../services/emailService.js';
 
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET || 'bizzolution_jwt_super_secret_key_2026', {
@@ -30,6 +31,14 @@ export const register = async (req, res, next) => {
     });
 
     const token = generateToken(user._id);
+
+    // Send automated welcome email with website logo and greeting
+    sendWelcomeEmail({
+      userEmail: user.email,
+      userName: user.name,
+    }).catch((err) => {
+      console.error('[Welcome Email Background Error]', err.message);
+    });
 
     res.status(201).json({
       success: true,

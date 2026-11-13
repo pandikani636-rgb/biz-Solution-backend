@@ -936,17 +936,51 @@ export const getPublicPdfCatalog = async (req, res, next) => {
     }
 
     if (!catalog) {
+      // Find latest uploaded PDF in public/uploads if available
+      let fallbackFileUrl = '';
+      let fallbackFileName = 'Official-Industrial-Catalog.pdf';
+      try {
+        const uploadsDir = path.resolve(process.cwd(), 'public', 'uploads');
+        if (fs.existsSync(uploadsDir)) {
+          const files = fs.readdirSync(uploadsDir).filter((f) => f.toLowerCase().endsWith('.pdf'));
+          if (files.length > 0) {
+            fallbackFileUrl = `/uploads/${files[files.length - 1]}`;
+            fallbackFileName = files[files.length - 1];
+          }
+        }
+      } catch (e) {
+        console.warn('[PDF Catalog Uploads Fallback Notice]', e.message);
+      }
+
       // Fallback default
       const dummy = await parsePdfCatalogText('', 'Default Industrial Catalog');
       return res.json({
         success: true,
         data: {
           title: 'Official Balumuni & Associates Industrial Master Catalog',
+          fileName: fallbackFileName,
+          fileUrl: fallbackFileUrl,
           totalCategories: dummy.totalCategories,
           totalProducts: dummy.totalProducts,
           categories: dummy.categories,
         },
       });
+    }
+
+    // Ensure catalog has valid fileUrl if available on disk
+    let effectiveFileUrl = catalog.fileUrl || '';
+    if (!effectiveFileUrl) {
+      try {
+        const uploadsDir = path.resolve(process.cwd(), 'public', 'uploads');
+        if (fs.existsSync(uploadsDir)) {
+          const files = fs.readdirSync(uploadsDir).filter((f) => f.toLowerCase().endsWith('.pdf'));
+          if (files.length > 0) {
+            effectiveFileUrl = `/uploads/${files[files.length - 1]}`;
+          }
+        }
+      } catch (e) {
+        // ignore
+      }
     }
 
     let filteredCategories = JSON.parse(JSON.stringify(catalog.categories || []));
@@ -1019,7 +1053,7 @@ export const getPublicPdfCatalog = async (req, res, next) => {
         _id: catalog._id,
         title: catalog.title,
         fileName: catalog.fileName,
-        fileUrl: catalog.fileUrl,
+        fileUrl: effectiveFileUrl || catalog.fileUrl,
         updatedAt: catalog.updatedAt,
         totalCategories: filteredCategories.length,
         totalProducts: totalProductsCount,

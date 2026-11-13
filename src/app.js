@@ -42,6 +42,8 @@ const app = express();
 app.use(
   helmet({
     crossOriginResourcePolicy: { policy: 'cross-origin' },
+    frameguard: false,
+    contentSecurityPolicy: false,
   })
 );
 
@@ -84,6 +86,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Static files for local uploads fallback
 const publicUploads = path.resolve(process.cwd(), 'public');
 app.use(express.static(publicUploads));
+app.use('/uploads', express.static(path.resolve(process.cwd(), 'public', 'uploads')));
 
 // Rate Limiter for Authentication and Contact Forms
 const authLimiter = rateLimit({

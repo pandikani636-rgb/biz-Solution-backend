@@ -20,6 +20,7 @@ export const connectDB = async () => {
     const conn = await mongoose.connect(uri, {
       autoIndex: !isProduction, // Disable in production for better serverless performance
       serverSelectionTimeoutMS: 8000,
+      tlsAllowInvalidCertificates: !isProduction || uri.includes('mongodb.net'),
     });
     console.log(`[Database] MongoDB Connected: ${conn.connection.host}/${conn.connection.name}`);
     return conn;

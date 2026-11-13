@@ -4,6 +4,8 @@ import { Booking } from '../models/Booking.js';
 import { Payment } from '../models/Payment.js';
 import { generateInvoiceForBooking } from '../services/invoiceService.js';
 import { createNotification, notifyAdmins } from '../services/notificationService.js';
+import { sendNewOrderNotificationEmail } from '../services/emailService.js';
+import { User } from '../models/User.js';
 import { BOOKING_STATUS, PAYMENT_STATUS, ROLES } from '../config/constants.js';
 
 // Setup Razorpay client if credentials are configured
@@ -196,6 +198,19 @@ export const verifyPayment = async (req, res, next) => {
       type: 'payment',
       link: `/admin/bookings/${booking._id}`,
     });
+
+    // Send email notification to admin with updated paid order details
+    try {
+      const customerUser = await User.findById(booking.customer).select('name email phone');
+      sendNewOrderNotificationEmail({
+        order: booking,
+        customer: customerUser,
+        service: booking.serviceSnapshot,
+        pkg: booking.packageSnapshot,
+      }).catch((e) => console.error('[Order Payment Email Error]', e.message));
+    } catch (e) {
+      // non-blocking
+    }
 
     res.json({
       success: true,

@@ -142,13 +142,31 @@ export const getServiceBySlugOrId = async (req, res, next) => {
     const isId = mongoose.Types.ObjectId.isValid(identifier);
 
     const query = isId ? { _id: identifier } : { slug: identifier };
-    const service = await Service.findOne(query)
+    let service = await Service.findOne(query)
       .populate('category', 'name slug icon')
       .populate({
         path: 'packages',
         match: { isActive: true },
         options: { sort: { displayOrder: 1, price: 1 } },
       });
+
+    // Fallback: If not found, try matching by partNumber (e.g. 6204, SPC 2360)
+    if (!service && !isId) {
+      const escapedId = identifier.replace(/[-_]/g, ' ').trim();
+      service = await Service.findOne({
+        $or: [
+          { partNumber: new RegExp(`^${identifier.trim()}$`, 'i') },
+          { partNumber: new RegExp(`^${escapedId}$`, 'i') },
+          { name: new RegExp(escapedId, 'i') },
+        ],
+      })
+        .populate('category', 'name slug icon')
+        .populate({
+          path: 'packages',
+          match: { isActive: true },
+          options: { sort: { displayOrder: 1, price: 1 } },
+        });
+    }
 
     if (!service) {
       return res.status(404).json({ success: false, message: 'Service not found' });

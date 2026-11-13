@@ -5,6 +5,7 @@ import { Coupon } from '../models/Coupon.js';
 import { Payment } from '../models/Payment.js';
 import { calculateBookingPrice } from '../services/pricingService.js';
 import { createNotification, notifyAdmins } from '../services/notificationService.js';
+import { sendNewOrderNotificationEmail } from '../services/emailService.js';
 import { BOOKING_STATUS, PAYMENT_STATUS, ROLES } from '../config/constants.js';
 
 export const createBooking = async (req, res, next) => {
@@ -154,6 +155,16 @@ export const createBooking = async (req, res, next) => {
       message: `Customer ${req.user.name} placed a booking #${booking.bookingNumber} for ${service.name} (₹${booking.totalAmount}).`,
       type: 'booking',
       link: `/admin/bookings/${booking._id}`,
+    });
+
+    // Send automated email notification with order details to business owner / admin
+    sendNewOrderNotificationEmail({
+      order: booking,
+      customer: req.user,
+      service,
+      pkg,
+    }).catch((err) => {
+      console.error('[Admin Order Email Background Error]', err.message);
     });
 
     res.status(201).json({
