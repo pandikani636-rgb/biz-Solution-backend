@@ -1009,27 +1009,44 @@ export const getPublicPdfCatalog = async (req, res, next) => {
         .filter((cat) => cat.subcategories.length > 0);
     }
 
-    // Filter by search query across products
+    // Filter by search query across categories, subcategories and products
     if (search || brand) {
       const q = (search || '').toLowerCase().trim();
       const b = (brand || '').toLowerCase().trim();
 
       filteredCategories = filteredCategories
         .map((cat) => {
+          const catMatches = Boolean(q && cat.name.toLowerCase().includes(q));
+
           const matchingSubs = cat.subcategories
             .map((sub) => {
-              const matchingProds = sub.products.filter((p) => {
+              const subMatches = Boolean(q && sub.name.toLowerCase().includes(q));
+
+              const matchingProds = (sub.products || []).filter((p) => {
+                const matchBrand = !b || (p.brand && p.brand.toLowerCase() === b);
+                if (!matchBrand) return false;
+
+                if (!q) return true;
+
+                // If user typed this category name or subcategory name, include all products under it
+                if (catMatches || subMatches) return true;
+
                 const matchSearch =
-                  !q ||
                   p.partNumber.toLowerCase().includes(q) ||
                   p.name.toLowerCase().includes(q) ||
                   (p.brand && p.brand.toLowerCase().includes(q)) ||
                   (p.specifications && p.specifications.toLowerCase().includes(q)) ||
-                  (p.categoryName && p.categoryName.toLowerCase().includes(q)) ||
-                  (p.subcategoryName && p.subcategoryName.toLowerCase().includes(q));
-                const matchBrand = !b || (p.brand && p.brand.toLowerCase() === b);
-                return matchSearch && matchBrand;
+                  ((p.categoryName || cat.name) && (p.categoryName || cat.name).toLowerCase().includes(q)) ||
+                  ((p.subcategoryName || sub.name) && (p.subcategoryName || sub.name).toLowerCase().includes(q));
+                return matchSearch;
               });
+
+              // Ensure categoryName and subcategoryName are populated on each product
+              matchingProds.forEach((p) => {
+                if (!p.categoryName) p.categoryName = cat.name;
+                if (!p.subcategoryName) p.subcategoryName = sub.name;
+              });
+
               return { ...sub, products: matchingProds };
             })
             .filter((sub) => sub.products.length > 0);
@@ -1037,6 +1054,16 @@ export const getPublicPdfCatalog = async (req, res, next) => {
           return { ...cat, subcategories: matchingSubs };
         })
         .filter((cat) => cat.subcategories.length > 0);
+    } else {
+      // Ensure categoryName and subcategoryName are populated even without search
+      filteredCategories.forEach((cat) => {
+        cat.subcategories?.forEach((sub) => {
+          sub.products?.forEach((p) => {
+            if (!p.categoryName) p.categoryName = cat.name;
+            if (!p.subcategoryName) p.subcategoryName = sub.name;
+          });
+        });
+      });
     }
 
     // Count active products
@@ -1085,6 +1112,60 @@ export const deletePdfCatalog = async (req, res, next) => {
     const catalog = await PdfCatalog.findByIdAndDelete(req.params.id);
     if (!catalog) return res.status(404).json({ success: false, message: 'Catalog not found' });
     res.json({ success: true, message: 'Catalog deleted successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getPdfProductByPartNumber = async (req, res, next) => {
+  try {
+    const { partNumber } = req.params;
+    if (!partNumber) {
+      return res.status(400).json({ success: false, message: 'Part number is required' });
+    }
+
+    const clean = decodeURIComponent(partNumber).trim().toLowerCase();
+    const cleanNoSpace = clean.replace(/[\s\-_]+/g, '');
+
+    let catalog = await PdfCatalog.findOne({ isActive: true });
+    if (!catalog) catalog = await PdfCatalog.findOne().sort({ createdAt: -1 });
+
+    let categories = catalog ? catalog.categories : [];
+    if (!categories || categories.length === 0) {
+      const dummy = await parsePdfCatalogText('', 'Default Industrial Catalog');
+      categories = dummy.categories;
+    }
+
+    for (const cat of categories) {
+      for (const sub of cat.subcategories || []) {
+        for (const prod of sub.products || []) {
+          const pPart = (prod.partNumber || '').trim().toLowerCase();
+          const pPartNoSpace = pPart.replace(/[\s\-_]+/g, '');
+          const pName = (prod.name || '').trim().toLowerCase();
+          const pId = prod._id ? prod._id.toString() : '';
+
+          if (
+            pPart === clean ||
+            pPartNoSpace === cleanNoSpace ||
+            pName === clean ||
+            pName.includes(clean) ||
+            pId === clean
+          ) {
+            return res.json({
+              success: true,
+              data: {
+                ...(prod.toObject ? prod.toObject() : prod),
+                categoryName: prod.categoryName || cat.name,
+                subcategoryName: prod.subcategoryName || sub.name,
+                pdfUrl: catalog?.fileUrl || '/sample-catalog.pdf',
+              },
+            });
+          }
+        }
+      }
+    }
+
+    return res.status(404).json({ success: false, message: 'Product not found in PDF catalog' });
   } catch (error) {
     next(error);
   }

@@ -2,6 +2,62 @@ import mongoose from 'mongoose';
 import { Service } from '../models/Service.js';
 import { ServicePackage } from '../models/ServicePackage.js';
 import { Booking } from '../models/Booking.js';
+import { PdfCatalog } from '../models/PdfCatalog.js';
+import { parsePdfCatalogText } from './pdfCatalogController.js';
+
+// Helper to convert a PDF product to a Service-compatible shape
+const formatPdfProductToService = (prod, catName = '', subName = '', pdfUrl = '') => {
+  const partNumber = prod.partNumber || '';
+  const name = prod.name || `${partNumber} Industrial Component`;
+  const brand = prod.brand || 'PIX';
+  const categoryName = prod.categoryName || catName || 'Power Transmission';
+  const subcategoryName = prod.subcategoryName || subName || 'Standard Profile';
+  const wholesalePrice = prod.wholesalePrice || prod.mrp || 0;
+  const mrp = prod.mrp || Math.round(wholesalePrice / 0.54);
+  const discountPercentage = prod.discountPercentage || 46;
+
+  return {
+    _id: prod._id || new mongoose.Types.ObjectId(),
+    name,
+    slug: partNumber.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+    partNumber,
+    brand,
+    section: prod.section || 'Industrial Belt',
+    category: {
+      _id: new mongoose.Types.ObjectId(),
+      name: categoryName,
+      slug: categoryName.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+    },
+    categoryName,
+    subcategoryName,
+    mainPrice: wholesalePrice,
+    basePrice: wholesalePrice,
+    officialMrp: mrp,
+    mrp,
+    discountPercentage,
+    discountPrice: wholesalePrice,
+    mainImage: prod.image || 'https://cobrel.co.za/wp-content/uploads/2019/10/Classical-V-Belts-copy3.png',
+    images: [prod.image || 'https://cobrel.co.za/wp-content/uploads/2019/10/Classical-V-Belts-copy3.png'],
+    shortDescription: prod.description || `${brand} ${name} (${partNumber})`,
+    fullDescription: prod.description || `Original ${brand} ${name} - Part #${partNumber}. ${prod.specifications || ''}. Supplied directly with manufacturer test certificate and tracked logistics.`,
+    specifications: prod.specifications ? [{ name: 'Engineering Specs', value: prod.specifications }] : [],
+    inStock: prod.inStock !== false,
+    isActive: true,
+    isFromPdfCatalog: true,
+    pdfUrl: pdfUrl || '/sample-catalog.pdf',
+    packages: [
+      {
+        _id: 'standard-wholesale-pack',
+        name: 'Standard Wholesale Pack',
+        price: wholesalePrice,
+        discountPrice: wholesalePrice,
+        description: 'OEM factory unit with GST invoice, MTC test certificate and tracked dispatch',
+        features: ['100% Genuine MTC Certified', 'Factory Sealed', 'Pan-India Express Dispatch'],
+        isActive: true,
+      },
+    ],
+  };
+};
 
 export const getServices = async (req, res, next) => {
   try {
@@ -121,13 +177,59 @@ export const getServices = async (req, res, next) => {
       Service.countDocuments(query),
     ]);
 
+    let finalServices = services;
+    let finalTotal = total;
+
+    // If search was provided or results are few, enrich with matching products from active PDF Catalog
+    if (search && search.trim()) {
+      const q = search.trim().toLowerCase();
+      try {
+        let catalog = await PdfCatalog.findOne({ isActive: true });
+        if (!catalog) catalog = await PdfCatalog.findOne().sort({ createdAt: -1 });
+
+        let categories = catalog ? catalog.categories : [];
+        if (!categories || categories.length === 0) {
+          const dummy = await parsePdfCatalogText('', 'Default Industrial Catalog');
+          categories = dummy.categories;
+        }
+
+        const pdfMatches = [];
+        for (const cat of categories) {
+          const catMatch = cat.name && cat.name.toLowerCase().includes(q);
+          for (const sub of cat.subcategories || []) {
+            const subMatch = sub.name && sub.name.toLowerCase().includes(q);
+            for (const prod of sub.products || []) {
+              const partMatch = prod.partNumber && prod.partNumber.toLowerCase().includes(q);
+              const nameMatch = prod.name && prod.name.toLowerCase().includes(q);
+              const brandMatch = prod.brand && prod.brand.toLowerCase().includes(q);
+              const specMatch = prod.specifications && prod.specifications.toLowerCase().includes(q);
+
+              if (catMatch || subMatch || partMatch || nameMatch || brandMatch || specMatch) {
+                pdfMatches.push(formatPdfProductToService(prod, cat.name, sub.name, catalog?.fileUrl));
+              }
+            }
+          }
+        }
+
+        if (pdfMatches.length > 0) {
+          // Merge PDF matches (avoid duplicate partNumbers)
+          const existingParts = new Set(services.map((s) => (s.partNumber || '').toLowerCase()));
+          const uniquePdfMatches = pdfMatches.filter((p) => !existingParts.has((p.partNumber || '').toLowerCase()));
+          finalServices = [...services, ...uniquePdfMatches];
+          finalTotal = total + uniquePdfMatches.length;
+        }
+      } catch (pdfErr) {
+        console.warn('[getServices PDF Search Notice]', pdfErr.message);
+      }
+    }
+
     res.json({
       success: true,
-      data: services,
+      data: finalServices,
       pagination: {
-        total,
+        total: finalTotal,
         page: pageNum,
-        pages: Math.ceil(total / limitNum),
+        pages: Math.ceil(finalTotal / limitNum),
         limit: limitNum,
       },
     });
@@ -166,6 +268,85 @@ export const getServiceBySlugOrId = async (req, res, next) => {
           match: { isActive: true },
           options: { sort: { displayOrder: 1, price: 1 } },
         });
+    }
+
+    // Fallback 2: Check in PdfCatalog if product was imported from PDF
+    if (!service) {
+      const clean = decodeURIComponent(identifier).trim().toLowerCase();
+      const cleanNoSpace = clean.replace(/[\s\-_]+/g, '');
+
+      try {
+        let catalog = await PdfCatalog.findOne({ isActive: true });
+        if (!catalog) catalog = await PdfCatalog.findOne().sort({ createdAt: -1 });
+
+        let categories = catalog ? catalog.categories : [];
+        if (!categories || categories.length === 0) {
+          const dummy = await parsePdfCatalogText('', 'Default Industrial Catalog');
+          categories = dummy.categories;
+        }
+
+        let foundPdfProd = null;
+        let foundCat = null;
+        let foundSub = null;
+
+        for (const cat of categories) {
+          for (const sub of cat.subcategories || []) {
+            for (const prod of sub.products || []) {
+              const pPart = (prod.partNumber || '').trim().toLowerCase();
+              const pPartNoSpace = pPart.replace(/[\s\-_]+/g, '');
+              const pName = (prod.name || '').trim().toLowerCase();
+              const pId = prod._id ? prod._id.toString() : '';
+
+              if (
+                pPart === clean ||
+                pPartNoSpace === cleanNoSpace ||
+                pName === clean ||
+                pName.includes(clean) ||
+                pId === clean
+              ) {
+                foundPdfProd = prod;
+                foundCat = cat;
+                foundSub = sub;
+                break;
+              }
+            }
+            if (foundPdfProd) break;
+          }
+          if (foundPdfProd) break;
+        }
+
+        if (foundPdfProd) {
+          const formatted = formatPdfProductToService(
+            foundPdfProd,
+            foundCat?.name,
+            foundSub?.name,
+            catalog?.fileUrl
+          );
+
+          const related = (foundSub?.products || [])
+            .filter((p) => p.partNumber !== foundPdfProd.partNumber)
+            .slice(0, 4)
+            .map((p) => ({
+              _id: p._id || new mongoose.Types.ObjectId(),
+              name: p.name,
+              partNumber: p.partNumber,
+              slug: (p.partNumber || '').toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+              mainPrice: p.wholesalePrice,
+              basePrice: p.wholesalePrice,
+              discountPrice: p.wholesalePrice,
+              mainImage: p.image || formatted.mainImage,
+              shortDescription: p.description,
+            }));
+
+          return res.json({
+            success: true,
+            data: formatted,
+            related,
+          });
+        }
+      } catch (pdfErr) {
+        console.warn('[getServiceBySlugOrId PDF Lookup Notice]', pdfErr.message);
+      }
     }
 
     if (!service) {
