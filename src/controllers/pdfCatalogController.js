@@ -808,55 +808,74 @@ export const parsePdfCatalogText = async (filePath, originalName) => {
 
 export const uploadPdfCatalog = async (req, res, next) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({ success: false, message: 'Please upload a PDF document.' });
-    }
+    const rawFiles = req.files && req.files.length > 0 ? req.files : (req.file ? [req.file] : []);
+    const pdfFiles = rawFiles.filter(
+      (f) => f.originalname.toLowerCase().endsWith('.pdf') || f.mimetype === 'application/pdf'
+    );
 
-    if (!req.file.originalname.toLowerCase().endsWith('.pdf') && req.file.mimetype !== 'application/pdf') {
-      return res.status(400).json({ success: false, message: 'Uploaded file is not a valid PDF document.' });
+    if (pdfFiles.length === 0) {
+      return res.status(400).json({ success: false, message: 'Please upload at least one valid PDF document.' });
     }
 
     const { title } = req.body;
-    const fileUrl = await processUploadedFile(req.file, req);
+    const processedCatalogs = [];
+    let grandTotalProducts = 0;
+    let grandTotalCategories = 0;
 
-    console.log(`[PDF Upload] Processing file '${req.file.originalname}' (${req.file.size} bytes)...`);
+    for (let i = 0; i < pdfFiles.length; i++) {
+      const file = pdfFiles[i];
+      console.log(`[PDF Upload ${i + 1}/${pdfFiles.length}] Processing '${file.originalname}' (${file.size} bytes)...`);
 
-    const {
-      title: parsedTitle,
-      categories,
-      totalCategories,
-      totalProducts,
-    } = await parsePdfCatalogText(req.file.path, req.file.originalname);
+      const fileUrl = await processUploadedFile(file, req);
 
-    const catalogTitle = title || parsedTitle || req.file.originalname.replace(/\.pdf$/i, '');
+      const {
+        title: parsedTitle,
+        categories,
+        totalCategories,
+        totalProducts,
+      } = await parsePdfCatalogText(file.path, file.originalname);
 
-    // Deactivate previous active catalogs so the new one takes precedence
-    await PdfCatalog.updateMany({ isActive: true }, { isActive: false });
+      // If user provided custom title and only 1 file is uploaded, use it. Otherwise use parsed or filename
+      const catalogTitle = (pdfFiles.length === 1 && title)
+        ? title
+        : (parsedTitle || file.originalname.replace(/\.pdf$/i, ''));
 
-    const catalog = await PdfCatalog.create({
-      title: catalogTitle,
-      fileName: req.file.originalname,
-      fileUrl,
-      fileSize: req.file.size,
-      totalCategories,
-      totalProducts,
-      categories,
-      uploadedBy: req.user ? req.user._id : null,
-      isActive: true,
-    });
+      // Keep active: do NOT deactivate other catalogs! All uploaded catalogs stay active together!
+      const catalog = await PdfCatalog.create({
+        title: catalogTitle,
+        fileName: file.originalname,
+        fileUrl,
+        fileSize: file.size,
+        totalCategories,
+        totalProducts,
+        categories,
+        uploadedBy: req.user ? req.user._id : null,
+        isActive: true,
+      });
+
+      processedCatalogs.push(catalog);
+      grandTotalProducts += totalProducts;
+      grandTotalCategories += totalCategories;
+    }
 
     // Notify administrators
     await notifyAdmins({
-      title: 'New PDF Product Catalog Imported & Categorized',
-      message: `PDF '${req.file.originalname}' was uploaded, automatically fetched with internet product images, and organized into ${totalCategories} categories and ${totalProducts} products.`,
+      title: `${pdfFiles.length} PDF Product Catalog(s) Imported & Categorized`,
+      message: `Successfully processed ${pdfFiles.length} catalog file(s): extracted ${grandTotalProducts} products across ${grandTotalCategories} categories with verified genuine images.`,
       type: 'system',
       link: '/admin/pdf-catalog',
     });
 
+    const isPlural = pdfFiles.length > 1;
     res.status(201).json({
       success: true,
-      message: `PDF Catalog '${catalogTitle}' successfully processed: ${totalProducts} products extracted and organized under ${totalCategories} categories with verified product images.`,
-      data: catalog,
+      message: isPlural
+        ? `Successfully processed and imported ${pdfFiles.length} PDF catalogs (${grandTotalProducts} products across ${grandTotalCategories} categories). All catalogs are now live on the Products page!`
+        : `PDF Catalog '${processedCatalogs[0].title}' successfully processed: ${grandTotalProducts} products extracted and live on the Products page!`,
+      data: isPlural ? processedCatalogs : processedCatalogs[0],
+      catalogs: processedCatalogs,
+      totalFiles: pdfFiles.length,
+      grandTotalProducts,
     });
   } catch (error) {
     console.error('[Upload PDF Catalog Error]', error);
@@ -881,9 +900,11 @@ export const reprocessPdfCatalog = async (req, res, next) => {
     if (!localPath || !fs.existsSync(localPath)) {
       // Find latest uploaded PDF in public/uploads if matching filename exists
       const uploadsDir = path.resolve(process.cwd(), 'public', 'uploads');
-      const files = fs.readdirSync(uploadsDir).filter((f) => f.endsWith('.pdf'));
-      if (files.length > 0) {
-        localPath = path.join(uploadsDir, files[files.length - 1]);
+      if (fs.existsSync(uploadsDir)) {
+        const files = fs.readdirSync(uploadsDir).filter((f) => f.endsWith('.pdf'));
+        if (files.length > 0) {
+          localPath = path.join(uploadsDir, files[files.length - 1]);
+        }
       }
     }
 
@@ -910,9 +931,6 @@ export const reprocessPdfCatalog = async (req, res, next) => {
     catalog.isActive = true;
     await catalog.save();
 
-    // Set other catalogs inactive
-    await PdfCatalog.updateMany({ _id: { $ne: catalog._id } }, { isActive: false });
-
     res.json({
       success: true,
       message: `Catalog '${catalog.title}' reprocessed successfully with ${totalProducts} products across ${totalCategories} categories with real images.`,
@@ -924,92 +942,167 @@ export const reprocessPdfCatalog = async (req, res, next) => {
   }
 };
 
-export const getPublicPdfCatalog = async (req, res, next) => {
+export const togglePdfCatalogActive = async (req, res, next) => {
   try {
-    const { search, category, brand, subcategory } = req.query;
-
-    let catalog = await PdfCatalog.findOne({ isActive: true }).sort({ createdAt: -1 });
-
+    const catalog = await PdfCatalog.findById(req.params.id);
     if (!catalog) {
-      // Check if any catalog exists
-      catalog = await PdfCatalog.findOne().sort({ createdAt: -1 });
+      return res.status(404).json({ success: false, message: 'Catalog not found' });
     }
 
-    if (!catalog) {
-      // Find latest uploaded PDF in public/uploads if available
-      let fallbackFileUrl = '';
-      let fallbackFileName = 'Official-Industrial-Catalog.pdf';
-      try {
-        const uploadsDir = path.resolve(process.cwd(), 'public', 'uploads');
-        if (fs.existsSync(uploadsDir)) {
-          const files = fs.readdirSync(uploadsDir).filter((f) => f.toLowerCase().endsWith('.pdf'));
-          if (files.length > 0) {
-            fallbackFileUrl = `/uploads/${files[files.length - 1]}`;
-            fallbackFileName = files[files.length - 1];
-          }
-        }
-      } catch (e) {
-        console.warn('[PDF Catalog Uploads Fallback Notice]', e.message);
-      }
+    catalog.isActive = !catalog.isActive;
+    await catalog.save();
 
+    res.json({
+      success: true,
+      message: `Catalog '${catalog.title}' is now ${catalog.isActive ? 'Active (Live on Products page)' : 'Inactive (Hidden)'}`,
+      data: catalog,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getPublicPdfCatalog = async (req, res, next) => {
+  try {
+    const { search, category, brand, subcategory, catalogId } = req.query;
+
+    let catalogFilter = { isActive: true };
+    if (catalogId && catalogId !== 'all') {
+      catalogFilter = { _id: catalogId };
+    }
+
+    let activeCatalogs = await PdfCatalog.find(catalogFilter).sort({ createdAt: -1 });
+
+    if (!activeCatalogs || activeCatalogs.length === 0) {
+      // If none active under filter, check if any catalog exists in database
+      activeCatalogs = await PdfCatalog.find().sort({ createdAt: -1 });
+    }
+
+    if (!activeCatalogs || activeCatalogs.length === 0) {
       // Fallback default
       const dummy = await parsePdfCatalogText('', 'Default Industrial Catalog');
       return res.json({
         success: true,
         data: {
           title: 'Official Balumuni & Associates Industrial Master Catalog',
-          fileName: fallbackFileName,
-          fileUrl: fallbackFileUrl,
+          fileName: 'Official-Industrial-Catalog.pdf',
+          fileUrl: '/sample-catalog.pdf',
           totalCategories: dummy.totalCategories,
           totalProducts: dummy.totalProducts,
           categories: dummy.categories,
+          catalogs: [],
         },
       });
     }
 
-    // Ensure catalog has valid fileUrl if available on disk
-    let effectiveFileUrl = catalog.fileUrl || '';
-    if (!effectiveFileUrl) {
-      try {
-        const uploadsDir = path.resolve(process.cwd(), 'public', 'uploads');
-        if (fs.existsSync(uploadsDir)) {
-          const files = fs.readdirSync(uploadsDir).filter((f) => f.toLowerCase().endsWith('.pdf'));
-          if (files.length > 0) {
-            effectiveFileUrl = `/uploads/${files[files.length - 1]}`;
+    // Prepare catalog summary list for the frontend
+    const catalogSummaries = activeCatalogs.map((c) => ({
+      _id: c._id,
+      title: c.title,
+      fileName: c.fileName,
+      fileUrl: c.fileUrl || '',
+      totalCategories: c.totalCategories || (c.categories ? c.categories.length : 0),
+      totalProducts: c.totalProducts || 0,
+      createdAt: c.createdAt,
+      isActive: c.isActive,
+    }));
+
+    // Merge categories across all active catalogs
+    const categoryMap = new Map();
+
+    for (const catalog of activeCatalogs) {
+      const effectivePdfUrl = catalog.fileUrl || '/sample-catalog.pdf';
+      for (const cat of catalog.categories || []) {
+        const catKey = (cat.name || '').trim().toLowerCase();
+        if (!catKey) continue;
+
+        if (!categoryMap.has(catKey)) {
+          categoryMap.set(catKey, {
+            _id: cat._id,
+            name: cat.name,
+            description: cat.description || '',
+            image: cat.image || '',
+            subcategories: [],
+            _subMap: new Map(),
+          });
+        }
+
+        const mergedCat = categoryMap.get(catKey);
+        if (!mergedCat.image && cat.image) {
+          mergedCat.image = cat.image;
+        }
+
+        for (const sub of cat.subcategories || []) {
+          const subKey = (sub.name || '').trim().toLowerCase();
+          if (!subKey) continue;
+
+          if (!mergedCat._subMap.has(subKey)) {
+            const subObj = {
+              _id: sub._id,
+              name: sub.name,
+              description: sub.description || '',
+              image: sub.image || '',
+              products: [],
+            };
+            mergedCat._subMap.set(subKey, subObj);
+            mergedCat.subcategories.push(subObj);
+          }
+
+          const mergedSub = mergedCat._subMap.get(subKey);
+          if (!mergedSub.image && sub.image) {
+            mergedSub.image = sub.image;
+          }
+
+          for (const prod of sub.products || []) {
+            mergedSub.products.push({
+              ...(prod.toObject ? prod.toObject() : prod),
+              categoryName: prod.categoryName || cat.name,
+              subcategoryName: prod.subcategoryName || sub.name,
+              catalogId: catalog._id,
+              catalogTitle: catalog.title,
+              pdfUrl: effectivePdfUrl,
+            });
           }
         }
-      } catch (e) {
-        // ignore
       }
     }
 
-    let filteredCategories = JSON.parse(JSON.stringify(catalog.categories || []));
+    // Convert map to clean array
+    let mergedCategories = Array.from(categoryMap.values()).map((cat) => {
+      const { _subMap, ...rest } = cat;
+      return rest;
+    });
 
-    // Filter by main category if provided
+    // Apply Filters (category, subcategory, search, brand)
+    let filteredCategories = mergedCategories;
+
+    // Filter by category if provided
     if (category && category !== 'ALL') {
+      const cQuery = category.toLowerCase().trim();
       filteredCategories = filteredCategories.filter(
         (c) =>
-          c.name.toLowerCase() === category.toLowerCase() ||
-          c.name.toLowerCase().includes(category.toLowerCase()) ||
-          c._id === category
+          c.name.toLowerCase() === cQuery ||
+          c.name.toLowerCase().includes(cQuery) ||
+          c._id?.toString() === category
       );
     }
 
     // Filter by subcategory if provided
     if (subcategory) {
+      const sQuery = subcategory.toLowerCase().trim();
       filteredCategories = filteredCategories
         .map((cat) => ({
           ...cat,
           subcategories: cat.subcategories.filter(
             (s) =>
-              s.name.toLowerCase() === subcategory.toLowerCase() ||
-              s.name.toLowerCase().includes(subcategory.toLowerCase())
+              s.name.toLowerCase() === sQuery ||
+              s.name.toLowerCase().includes(sQuery)
           ),
         }))
         .filter((cat) => cat.subcategories.length > 0);
     }
 
-    // Filter by search query across categories, subcategories and products
+    // Filter by search query or brand across categories, subcategories and products
     if (search || brand) {
       const q = (search || '').toLowerCase().trim();
       const b = (brand || '').toLowerCase().trim();
@@ -1028,23 +1121,17 @@ export const getPublicPdfCatalog = async (req, res, next) => {
 
                 if (!q) return true;
 
-                // If user typed this category name or subcategory name, include all products under it
+                // If user typed category name or subcategory name, include all products under it
                 if (catMatches || subMatches) return true;
 
-                const matchSearch =
-                  p.partNumber.toLowerCase().includes(q) ||
-                  p.name.toLowerCase().includes(q) ||
+                return (
+                  (p.partNumber && p.partNumber.toLowerCase().includes(q)) ||
+                  (p.name && p.name.toLowerCase().includes(q)) ||
                   (p.brand && p.brand.toLowerCase().includes(q)) ||
                   (p.specifications && p.specifications.toLowerCase().includes(q)) ||
                   ((p.categoryName || cat.name) && (p.categoryName || cat.name).toLowerCase().includes(q)) ||
-                  ((p.subcategoryName || sub.name) && (p.subcategoryName || sub.name).toLowerCase().includes(q));
-                return matchSearch;
-              });
-
-              // Ensure categoryName and subcategoryName are populated on each product
-              matchingProds.forEach((p) => {
-                if (!p.categoryName) p.categoryName = cat.name;
-                if (!p.subcategoryName) p.subcategoryName = sub.name;
+                  ((p.subcategoryName || sub.name) && (p.subcategoryName || sub.name).toLowerCase().includes(q))
+                );
               });
 
               return { ...sub, products: matchingProds };
@@ -1054,16 +1141,6 @@ export const getPublicPdfCatalog = async (req, res, next) => {
           return { ...cat, subcategories: matchingSubs };
         })
         .filter((cat) => cat.subcategories.length > 0);
-    } else {
-      // Ensure categoryName and subcategoryName are populated even without search
-      filteredCategories.forEach((cat) => {
-        cat.subcategories?.forEach((sub) => {
-          sub.products?.forEach((p) => {
-            if (!p.categoryName) p.categoryName = cat.name;
-            if (!p.subcategoryName) p.subcategoryName = sub.name;
-          });
-        });
-      });
     }
 
     // Count active products
@@ -1074,17 +1151,23 @@ export const getPublicPdfCatalog = async (req, res, next) => {
       });
     });
 
+    const primaryCatalog = activeCatalogs[0];
+    const consolidatedTitle = activeCatalogs.length > 1
+      ? `All Industrial Catalogs (${activeCatalogs.length} Active Catalogs)`
+      : primaryCatalog.title;
+
     res.json({
       success: true,
       data: {
-        _id: catalog._id,
-        title: catalog.title,
-        fileName: catalog.fileName,
-        fileUrl: effectiveFileUrl || catalog.fileUrl,
-        updatedAt: catalog.updatedAt,
+        _id: primaryCatalog._id,
+        title: consolidatedTitle,
+        fileName: activeCatalogs.length > 1 ? 'Multiple-Industrial-Catalogs.pdf' : primaryCatalog.fileName,
+        fileUrl: primaryCatalog.fileUrl || '/sample-catalog.pdf',
+        updatedAt: primaryCatalog.updatedAt,
         totalCategories: filteredCategories.length,
         totalProducts: totalProductsCount,
         categories: filteredCategories,
+        catalogs: catalogSummaries,
       },
     });
   } catch (error) {
@@ -1127,45 +1210,43 @@ export const getPdfProductByPartNumber = async (req, res, next) => {
     const clean = decodeURIComponent(partNumber).trim().toLowerCase();
     const cleanNoSpace = clean.replace(/[\s\-_]+/g, '');
 
-    let catalog = await PdfCatalog.findOne({ isActive: true });
-    if (!catalog) catalog = await PdfCatalog.findOne().sort({ createdAt: -1 });
+    const activeCatalogs = await PdfCatalog.find({ isActive: true }).sort({ createdAt: -1 });
+    const catalogsToSearch = activeCatalogs.length > 0 ? activeCatalogs : await PdfCatalog.find().sort({ createdAt: -1 });
 
-    let categories = catalog ? catalog.categories : [];
-    if (!categories || categories.length === 0) {
-      const dummy = await parsePdfCatalogText('', 'Default Industrial Catalog');
-      categories = dummy.categories;
-    }
+    for (const catalog of catalogsToSearch) {
+      for (const cat of catalog.categories || []) {
+        for (const sub of cat.subcategories || []) {
+          for (const prod of sub.products || []) {
+            const pPart = (prod.partNumber || '').trim().toLowerCase();
+            const pPartNoSpace = pPart.replace(/[\s\-_]+/g, '');
+            const pName = (prod.name || '').trim().toLowerCase();
+            const pId = prod._id ? prod._id.toString() : '';
 
-    for (const cat of categories) {
-      for (const sub of cat.subcategories || []) {
-        for (const prod of sub.products || []) {
-          const pPart = (prod.partNumber || '').trim().toLowerCase();
-          const pPartNoSpace = pPart.replace(/[\s\-_]+/g, '');
-          const pName = (prod.name || '').trim().toLowerCase();
-          const pId = prod._id ? prod._id.toString() : '';
-
-          if (
-            pPart === clean ||
-            pPartNoSpace === cleanNoSpace ||
-            pName === clean ||
-            pName.includes(clean) ||
-            pId === clean
-          ) {
-            return res.json({
-              success: true,
-              data: {
-                ...(prod.toObject ? prod.toObject() : prod),
-                categoryName: prod.categoryName || cat.name,
-                subcategoryName: prod.subcategoryName || sub.name,
-                pdfUrl: catalog?.fileUrl || '/sample-catalog.pdf',
-              },
-            });
+            if (
+              pPart === clean ||
+              pPartNoSpace === cleanNoSpace ||
+              pName === clean ||
+              pName.includes(clean) ||
+              pId === clean
+            ) {
+              return res.json({
+                success: true,
+                data: {
+                  ...(prod.toObject ? prod.toObject() : prod),
+                  categoryName: prod.categoryName || cat.name,
+                  subcategoryName: prod.subcategoryName || sub.name,
+                  catalogId: catalog._id,
+                  catalogTitle: catalog.title,
+                  pdfUrl: catalog.fileUrl || '/sample-catalog.pdf',
+                },
+              });
+            }
           }
         }
       }
     }
 
-    return res.status(404).json({ success: false, message: 'Product not found in PDF catalog' });
+    return res.status(404).json({ success: false, message: 'Product not found in any active PDF catalog' });
   } catch (error) {
     next(error);
   }

@@ -34,7 +34,7 @@ const contactEnquirySchema = new mongoose.Schema(
     },
     enquiryType: {
       type: String,
-      enum: ['general', 'rfq', 'bulk_order'],
+      enum: ['general', 'rfq', 'bulk_order', 'ticket_booking', 'travel_booking'],
       default: 'general',
       index: true,
     },

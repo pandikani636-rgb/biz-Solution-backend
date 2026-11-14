@@ -184,28 +184,30 @@ export const getServices = async (req, res, next) => {
     if (search && search.trim()) {
       const q = search.trim().toLowerCase();
       try {
-        let catalog = await PdfCatalog.findOne({ isActive: true });
-        if (!catalog) catalog = await PdfCatalog.findOne().sort({ createdAt: -1 });
-
-        let categories = catalog ? catalog.categories : [];
-        if (!categories || categories.length === 0) {
-          const dummy = await parsePdfCatalogText('', 'Default Industrial Catalog');
-          categories = dummy.categories;
-        }
+        const activeCatalogs = await PdfCatalog.find({ isActive: true }).sort({ createdAt: -1 });
+        const catalogsToScan = activeCatalogs.length > 0 ? activeCatalogs : await PdfCatalog.find().sort({ createdAt: -1 }).limit(5);
 
         const pdfMatches = [];
-        for (const cat of categories) {
-          const catMatch = cat.name && cat.name.toLowerCase().includes(q);
-          for (const sub of cat.subcategories || []) {
-            const subMatch = sub.name && sub.name.toLowerCase().includes(q);
-            for (const prod of sub.products || []) {
-              const partMatch = prod.partNumber && prod.partNumber.toLowerCase().includes(q);
-              const nameMatch = prod.name && prod.name.toLowerCase().includes(q);
-              const brandMatch = prod.brand && prod.brand.toLowerCase().includes(q);
-              const specMatch = prod.specifications && prod.specifications.toLowerCase().includes(q);
+        for (const catalog of catalogsToScan) {
+          let categories = catalog ? catalog.categories : [];
+          if (!categories || categories.length === 0) {
+            const dummy = await parsePdfCatalogText('', 'Default Industrial Catalog');
+            categories = dummy.categories;
+          }
 
-              if (catMatch || subMatch || partMatch || nameMatch || brandMatch || specMatch) {
-                pdfMatches.push(formatPdfProductToService(prod, cat.name, sub.name, catalog?.fileUrl));
+          for (const cat of categories) {
+            const catMatch = cat.name && cat.name.toLowerCase().includes(q);
+            for (const sub of cat.subcategories || []) {
+              const subMatch = sub.name && sub.name.toLowerCase().includes(q);
+              for (const prod of sub.products || []) {
+                const partMatch = prod.partNumber && prod.partNumber.toLowerCase().includes(q);
+                const nameMatch = prod.name && prod.name.toLowerCase().includes(q);
+                const brandMatch = prod.brand && prod.brand.toLowerCase().includes(q);
+                const specMatch = prod.specifications && prod.specifications.toLowerCase().includes(q);
+
+                if (catMatch || subMatch || partMatch || nameMatch || brandMatch || specMatch) {
+                  pdfMatches.push(formatPdfProductToService(prod, cat.name, sub.name, catalog?.fileUrl));
+                }
               }
             }
           }
@@ -276,39 +278,44 @@ export const getServiceBySlugOrId = async (req, res, next) => {
       const cleanNoSpace = clean.replace(/[\s\-_]+/g, '');
 
       try {
-        let catalog = await PdfCatalog.findOne({ isActive: true });
-        if (!catalog) catalog = await PdfCatalog.findOne().sort({ createdAt: -1 });
-
-        let categories = catalog ? catalog.categories : [];
-        if (!categories || categories.length === 0) {
-          const dummy = await parsePdfCatalogText('', 'Default Industrial Catalog');
-          categories = dummy.categories;
-        }
+        const activeCatalogs = await PdfCatalog.find({ isActive: true }).sort({ createdAt: -1 });
+        const catalogsToScan = activeCatalogs.length > 0 ? activeCatalogs : await PdfCatalog.find().sort({ createdAt: -1 }).limit(5);
 
         let foundPdfProd = null;
         let foundCat = null;
         let foundSub = null;
+        let foundCatalog = null;
 
-        for (const cat of categories) {
-          for (const sub of cat.subcategories || []) {
-            for (const prod of sub.products || []) {
-              const pPart = (prod.partNumber || '').trim().toLowerCase();
-              const pPartNoSpace = pPart.replace(/[\s\-_]+/g, '');
-              const pName = (prod.name || '').trim().toLowerCase();
-              const pId = prod._id ? prod._id.toString() : '';
+        for (const catalog of catalogsToScan) {
+          let categories = catalog ? catalog.categories : [];
+          if (!categories || categories.length === 0) {
+            const dummy = await parsePdfCatalogText('', 'Default Industrial Catalog');
+            categories = dummy.categories;
+          }
 
-              if (
-                pPart === clean ||
-                pPartNoSpace === cleanNoSpace ||
-                pName === clean ||
-                pName.includes(clean) ||
-                pId === clean
-              ) {
-                foundPdfProd = prod;
-                foundCat = cat;
-                foundSub = sub;
-                break;
+          for (const cat of categories) {
+            for (const sub of cat.subcategories || []) {
+              for (const prod of sub.products || []) {
+                const pPart = (prod.partNumber || '').trim().toLowerCase();
+                const pPartNoSpace = pPart.replace(/[\s\-_]+/g, '');
+                const pName = (prod.name || '').trim().toLowerCase();
+                const pId = prod._id ? prod._id.toString() : '';
+
+                if (
+                  pPart === clean ||
+                  pPartNoSpace === cleanNoSpace ||
+                  pName === clean ||
+                  pName.includes(clean) ||
+                  pId === clean
+                ) {
+                  foundPdfProd = prod;
+                  foundCat = cat;
+                  foundSub = sub;
+                  foundCatalog = catalog;
+                  break;
+                }
               }
+              if (foundPdfProd) break;
             }
             if (foundPdfProd) break;
           }
@@ -320,7 +327,7 @@ export const getServiceBySlugOrId = async (req, res, next) => {
             foundPdfProd,
             foundCat?.name,
             foundSub?.name,
-            catalog?.fileUrl
+            foundCatalog?.fileUrl
           );
 
           const related = (foundSub?.products || [])

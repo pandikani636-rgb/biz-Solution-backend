@@ -6,6 +6,7 @@ import {
   deletePdfCatalog,
   reprocessPdfCatalog,
   getPdfProductByPartNumber,
+  togglePdfCatalogActive,
 } from '../controllers/pdfCatalogController.js';
 import { upload } from '../middleware/upload.js';
 import { authenticate, authorize } from '../middleware/auth.js';
@@ -13,15 +14,16 @@ import { ROLES } from '../config/constants.js';
 
 const router = express.Router();
 
-// Public route to view categorized PDF data with search
+// Public route to view categorized PDF data with search across all active catalogs
 router.get('/', getPublicPdfCatalog);
 
 // Public route to view a specific PDF catalog product by part number
 router.get('/product/:partNumber', getPdfProductByPartNumber);
 
-// Admin PDF Catalog Management
-router.post('/upload', authenticate, authorize(ROLES.ADMIN), upload.single('pdf'), uploadPdfCatalog);
+// Admin PDF Catalog Management - accepts single or multiple PDF files
+router.post('/upload', authenticate, authorize(ROLES.ADMIN), upload.any(), uploadPdfCatalog);
 router.post('/admin/reprocess/:id', authenticate, authorize(ROLES.ADMIN), reprocessPdfCatalog);
+router.patch('/admin/toggle-active/:id', authenticate, authorize(ROLES.ADMIN), togglePdfCatalogActive);
 router.get('/admin', authenticate, authorize(ROLES.ADMIN), getAdminPdfCatalogs);
 router.delete('/admin/:id', authenticate, authorize(ROLES.ADMIN), deletePdfCatalog);
 

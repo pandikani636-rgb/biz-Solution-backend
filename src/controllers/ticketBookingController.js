@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import Razorpay from 'razorpay';
 import { TicketBooking } from '../models/TicketBooking.js';
+import { ContactEnquiry } from '../models/ContactEnquiry.js';
 import { notifyAdmins, createNotification } from '../services/notificationService.js';
 import { isTicketCancellationAllowed } from '../services/ticketBookingPolicy.js';
 
@@ -198,11 +199,50 @@ export const createTicketBooking = async (req, res, next) => {
       totalAmount: farePerPassenger * passengers.length * tripMultiplier,
     });
 
+    // Also record as a Contact Enquiry so it appears in Admin Enquiries page
+    try {
+      const passengerListStr = passengers
+        .map((p, i) => `${i + 1}. ${p.name} (${p.age}y, ${p.gender})`)
+        .join('; ');
+      const travelDateStr = departure.toLocaleDateString('en-IN', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+      });
+      const travelTimeStr = departure.toLocaleTimeString('en-IN', {
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+
+      let detailsSummary = '';
+      if (transportType === 'train') {
+        detailsSummary = `Train: ${travelDetails?.trainNumber || 'N/A'} ${travelDetails?.trainName || ''} | Station: ${travelDetails?.boardingStation || 'N/A'} | Quota: ${travelDetails?.quota || 'General'} | Berth: ${travelDetails?.berthPreference || 'None'}`;
+      } else if (transportType === 'flight') {
+        detailsSummary = `Flight: ${travelDetails?.airline || 'Any Airline'} | Trip: ${travelDetails?.tripType === 'round_trip' ? 'Round Trip' : 'One Way'} | Cabin: ${travelDetails?.cabinClass || fareClass} | Codes: ${travelDetails?.originCode || ''} → ${travelDetails?.destinationCode || ''}`;
+      }
+
+      await ContactEnquiry.create({
+        name: req.user.name,
+        email: contactEmail,
+        phone: contactPhone,
+        subject: `New ${transportType.toUpperCase()} Booking: ${sourceText} → ${destinationText} (${booking.bookingNumber})`,
+        message: `Booking Number: ${booking.bookingNumber}\nService: ${transportType.toUpperCase()} TICKET BOOKING\nBooking Type: ${bookingType.toUpperCase()}\nRoute: ${sourceText} to ${destinationText}\nDeparture: ${travelDateStr} at ${travelTimeStr}${returnDate ? `\nReturn: ${returnDate.toLocaleDateString('en-IN')} ${returnDate.toLocaleTimeString('en-IN')}` : ''}\nFare Class: ${fareClass}\nPassengers (${passengers.length}): ${passengerListStr}\nTotal Fare: ₹${farePerPassenger * passengers.length * tripMultiplier}\n${detailsSummary}\nSeat Preference: ${seatPreference || 'None'}`,
+        enquiryType: 'ticket_booking',
+        customer: req.user._id,
+        deliveryLocation: `${sourceText} to ${destinationText}`,
+        quantity: passengers.length,
+        targetPrice: farePerPassenger * passengers.length * tripMultiplier,
+        internalNotes: `Auto-generated from Ticket Booking #${booking.bookingNumber} (${transportType.toUpperCase()})`,
+      });
+    } catch (enquiryErr) {
+      console.warn('[Ticket Booking Enquiry Creation Notice]', enquiryErr.message);
+    }
+
     await notifyAdmins({
-      title: 'New ticket booking request',
-      message: `${req.user.name} requested a ${transportType} booking ${booking.bookingNumber} for ${booking.source} to ${booking.destination}.`,
-      type: 'booking',
-      link: '/admin/ticket-bookings',
+      title: `New ${transportType.toUpperCase()} Ticket Booking Enquiry`,
+      message: `${req.user.name} submitted a ${transportType.toUpperCase()} booking (${booking.bookingNumber}) for ${booking.source} to ${booking.destination}. New enquiry created in Admin Enquiries.`,
+      type: 'enquiry',
+      link: '/admin/enquiries',
     });
 
     return res.status(201).json({
