@@ -1105,15 +1105,33 @@ export const getPublicPdfCatalog = async (req, res, next) => {
     // Filter by search query or brand across categories, subcategories and products
     if (search || brand) {
       const q = (search || '').toLowerCase().trim();
+      const qClean = q.replace(/s\b/gi, '');
+      const tokens = q.split(/\s+/).filter((t) => t.length > 2);
       const b = (brand || '').toLowerCase().trim();
 
       filteredCategories = filteredCategories
         .map((cat) => {
-          const catMatches = Boolean(q && cat.name.toLowerCase().includes(q));
+          const catNameLower = (cat.name || '').toLowerCase();
+          const catMatches = Boolean(
+            q && (
+              catNameLower.includes(q) ||
+              catNameLower.includes(qClean) ||
+              q.includes(catNameLower) ||
+              tokens.some((tok) => catNameLower.includes(tok))
+            )
+          );
 
           const matchingSubs = cat.subcategories
             .map((sub) => {
-              const subMatches = Boolean(q && sub.name.toLowerCase().includes(q));
+              const subNameLower = (sub.name || '').toLowerCase();
+              const subMatches = Boolean(
+                q && (
+                  subNameLower.includes(q) ||
+                  subNameLower.includes(qClean) ||
+                  q.includes(subNameLower) ||
+                  tokens.some((tok) => subNameLower.includes(tok))
+                )
+              );
 
               const matchingProds = (sub.products || []).filter((p) => {
                 const matchBrand = !b || (p.brand && p.brand.toLowerCase() === b);

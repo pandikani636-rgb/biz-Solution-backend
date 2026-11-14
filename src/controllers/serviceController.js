@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import { Service } from '../models/Service.js';
+import { ServiceCategory } from '../models/ServiceCategory.js';
 import { ServicePackage } from '../models/ServicePackage.js';
 import { Booking } from '../models/Booking.js';
 import { PdfCatalog } from '../models/PdfCatalog.js';
@@ -129,15 +130,40 @@ export const getServices = async (req, res, next) => {
       query.isFeatured = isFeatured === 'true';
     }
 
-    // Search query (case insensitive matching on name, partNumber, brand, descriptions)
-    if (search) {
-      query.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { partNumber: { $regex: search, $options: 'i' } },
-        { brand: { $regex: search, $options: 'i' } },
-        { shortDescription: { $regex: search, $options: 'i' } },
-        { fullDescription: { $regex: search, $options: 'i' } },
+    // Search query (case insensitive matching on name, partNumber, brand, category, descriptions)
+    if (search && search.trim()) {
+      const q = search.trim();
+      const qClean = q.replace(/s\b/gi, ''); // singular variant
+
+      // Search for any categories matching query
+      let matchingCatIds = [];
+      try {
+        const matchingCats = await ServiceCategory.find({
+          $or: [
+            { name: { $regex: q, $options: 'i' } },
+            { name: { $regex: qClean, $options: 'i' } },
+            { slug: { $regex: q.toLowerCase().replace(/\s+/g, '-'), $options: 'i' } },
+          ],
+        }).select('_id');
+        matchingCatIds = matchingCats.map((c) => c._id);
+      } catch (catErr) {
+        // ignore
+      }
+
+      const orConditions = [
+        { name: { $regex: q, $options: 'i' } },
+        { name: { $regex: qClean, $options: 'i' } },
+        { partNumber: { $regex: q, $options: 'i' } },
+        { brand: { $regex: q, $options: 'i' } },
+        { shortDescription: { $regex: q, $options: 'i' } },
+        { fullDescription: { $regex: q, $options: 'i' } },
       ];
+
+      if (matchingCatIds.length > 0) {
+        orConditions.push({ category: { $in: matchingCatIds } });
+      }
+
+      query.$or = orConditions;
     }
 
     // Price range filter
@@ -195,10 +221,19 @@ export const getServices = async (req, res, next) => {
             categories = dummy.categories;
           }
 
+          const qClean = q.replace(/s\b/gi, '');
           for (const cat of categories) {
-            const catMatch = cat.name && cat.name.toLowerCase().includes(q);
+            const catNameLower = (cat.name || '').toLowerCase();
+            const catMatch =
+              catNameLower.includes(q) ||
+              catNameLower.includes(qClean) ||
+              q.includes(catNameLower);
             for (const sub of cat.subcategories || []) {
-              const subMatch = sub.name && sub.name.toLowerCase().includes(q);
+              const subNameLower = (sub.name || '').toLowerCase();
+              const subMatch =
+                subNameLower.includes(q) ||
+                subNameLower.includes(qClean) ||
+                q.includes(subNameLower);
               for (const prod of sub.products || []) {
                 const partMatch = prod.partNumber && prod.partNumber.toLowerCase().includes(q);
                 const nameMatch = prod.name && prod.name.toLowerCase().includes(q);
