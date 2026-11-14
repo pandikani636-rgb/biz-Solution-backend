@@ -68,8 +68,8 @@ export const handleChatbotQuery = async (req, res, next) => {
       cleanQuery.includes('பிராண்ட்')
     ) {
       reply = isTamil
-        ? `நாங்கள் 6 முன்னணி பிராண்டுகளை அதிகாரப்பூர்வமாக விநியோகிக்கிறோம்:\n\n1. **PIX** - இண்டஸ்ட்ரியல் பெல்ட்கள் (SPC, 8V, C 70) • 46% தள்ளுபடி\n2. **NBC** - ஹெவி சீரிஸ் பேரிங்ஸ் (6405ZZ C3) • 46% தள்ளுபடி\n3. **HCH** - எலக்ட்ரிக் மோட்டார் பால் பேரிங்ஸ் (6200/6300) • 46% தள்ளுபடி\n4. **Fenner** - புஷ் புல்லிகள் (200X3C) & PB பெல்ட்கள் • 46% தள்ளுபடி\n5. **Timken** - அனைத்து வகை இண்டஸ்ட்ரியல் பேரிங்ஸ் • 46% தள்ளுபடி\n6. **SKF** - ஆங்குலர் காண்டாக்ட் & பால் பேரிங்ஸ் (நேஷனல் & இம்போர்ட்டட்) • நேரடி 10% தள்ளுபடி`
-        : `We stock and distribute 6 authorized industrial makes:\n\n1. **PIX Transmissions**: Narrow Wedge (SPC, 8V) & Classical V-Belts (45%-48% Off)\n2. **NBC Bearings**: Heavy Deep Groove (6405ZZ C3) (45%-48% Off)\n3. **HCH Bearings**: Deep Groove Ball Bearings & Matched Sets (6203, 6204, 6205, 6305) (45%-48% Off)\n4. **Fenner India**: Taper Lock Pulleys & PB Belts (45%-48% Off)\n5. **Timken**: Heavy Industrial Roller & Ball Bearings (45%-48% Off)\n6. **SKF Group**: Angular Contact (7322) & High-Precision Bearings (Flat 10% Off with QR code validation)`;
+        ? `நாங்கள் 14 முன்னணி பிராண்டுகளை அதிகாரப்பூர்வமாக விநியோகிக்கிறோம்:\n\n1. **PIX**\n2. **JK Fenner**\n3. **Diamond**\n4. **NBC**\n5. **FAG**\n6. **SKF**\n7. **Timken**\n8. **NTN**\n9. **Siemens**\n10. **Crompton**\n11. **ABB**\n12. **Bharat Bijlee**\n13. **Shanthi Gears**\n14. **Vignesh Gears**`
+        : `We stock and distribute 14 authorized industrial makes in exact order:\n\n1. **PIX**\n2. **JK Fenner**\n3. **Diamond**\n4. **NBC**\n5. **FAG**\n6. **SKF**\n7. **Timken**\n8. **NTN**\n9. **Siemens**\n10. **Crompton**\n11. **ABB**\n12. **Bharat Bijlee**\n13. **Shanthi Gears**\n14. **Vignesh Gears**`;
       suggestions = ['View MRP Price List', 'Request RFQ', 'Calculate Net Price'];
       quickLink = { label: 'Price List', url: '/price-list' };
     }
