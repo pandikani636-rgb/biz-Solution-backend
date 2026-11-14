@@ -113,7 +113,7 @@ export const seedDatabase = async () => {
       siteName: 'BizZolution Industrial',
       tagLine: 'Authorized Industrial Power Transmission & Bearings Distributor',
       contactEmail: 'sales@bizzolution.com',
-      contactPhone: '+91 98765 43210',
+      contactPhone: '+91 74184 23238',
       address: 'Industrial Estate, Near Delhivery Logistics Hub, India',
       businessHours: 'Mon - Sat: 8:30 AM - 7:30 PM IST',
       currency: 'INR',

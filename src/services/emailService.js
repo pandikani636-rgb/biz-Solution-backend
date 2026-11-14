@@ -218,7 +218,7 @@ export const sendWelcomeEmail = async ({ userEmail, userName }) => {
                 Need custom project quotations, container pricing, or technical belt sizing? Reply directly to this email or reach our sales engineering desk:
               </p>
               <p style="margin: 8px 0 0 0; color: #1e293b; font-size: 13px; font-weight: 700;">
-                📞 Phone: +91-74184 23238 / +91 98426 70320<br>
+                📞 Phone: +91 74184 23238<br>
                 ✉️ Email: <a href="mailto:balumuniandassociates@gmail.com" style="color: #2563eb; text-decoration: none;">balumuniandassociates@gmail.com</a><br>
                 📍 45B/16 Noorullah Mall, Srivilliputtur, Virudhunagar Dist, Tamil Nadu - 626125
               </p>

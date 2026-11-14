@@ -32,7 +32,7 @@ const siteSettingSchema = new mongoose.Schema(
     },
     contactPhone: {
       type: String,
-      default: '+91-74184 23238 / +91 98426 70320',
+      default: '+91 74184 23238',
     },
     address: {
       type: String,

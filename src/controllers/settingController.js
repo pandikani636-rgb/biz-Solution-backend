@@ -10,7 +10,7 @@ export const getSettings = async (req, res, next) => {
         siteNameRemainingPart: 'and Associates',
         logo: '/bm-logo.png',
         contactEmail: 'balumuniandassociates@gmail.com',
-        contactPhone: '+91-74184 23238 / +91 98426 70320',
+        contactPhone: '+91 74184 23238',
         address: '45B/16 Noorullah Mall, Oothumalai Paradesimadam Street, Srivilliputtur, Virudhunagar Dist, Tamilnadu - 626125',
         googleMapsLocation: '45B/16 Noorullah Mall, Oothumalai Paradesimadam Street, Srivilliputtur, Virudhunagar Dist, Tamilnadu - 626125',
         footerDescription: 'Authorized industrial distributor for world-class mechanical transmission belts, bearings, taper pulleys, and industrial equipment.',
@@ -20,6 +20,10 @@ export const getSettings = async (req, res, next) => {
     } else {
       // Ensure default values for new fields if not already set
       let needsSave = false;
+      if (!settings.contactPhone || settings.contactPhone.includes('98426')) {
+        settings.contactPhone = '+91 74184 23238';
+        needsSave = true;
+      }
       if (!settings.siteNameFirstPart) {
         settings.siteNameFirstPart = 'Balumuni';
         needsSave = true;

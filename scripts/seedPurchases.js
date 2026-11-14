@@ -176,7 +176,7 @@ async function seedPurchases() {
     siteSetting.logo = '/bm-logo.png';
     siteSetting.favicon = '/bm-logo.png';
     siteSetting.contactEmail = 'balumuniandassociates@gmail.com';
-    siteSetting.contactPhone = '+91-74184 23238 / +91 98426 70320';
+    siteSetting.contactPhone = '+91 74184 23238';
     siteSetting.address = '45B/16 Noorullah Mall, Oothumalai Paradesimadam Street, Srivilliputtur, Virudhunagar Dist, Tamilnadu - 626125';
     siteSetting.metaDefaults = {
       title: 'Balumuni and Associates | Industrial Power Transmission & Bearings',
