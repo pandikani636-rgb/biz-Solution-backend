@@ -32,6 +32,8 @@ export const register = async (req, res, next) => {
 
     const token = generateToken(user._id);
 
+    
+
     // Send automated welcome email with website logo and greeting
     sendWelcomeEmail({
       userEmail: user.email,

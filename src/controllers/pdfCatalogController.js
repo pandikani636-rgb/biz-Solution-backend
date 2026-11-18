@@ -514,7 +514,7 @@ const DEFAULT_BEARING_PULLEY_CATALOG = [
             mrp: 3800,
             discountPercentage: 46,
             wholesalePrice: 2052,
-            specifications: 'Bore 65mm, OD 140mm, Width 33mm, MTC certified',
+            specifications: 'Bore 65mm, OD 140mm, Width 33mm, 100% Genuine Product',
             inStock: true,
           },
           {

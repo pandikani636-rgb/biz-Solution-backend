@@ -171,9 +171,9 @@ export const sendWelcomeEmail = async ({ userEmail, userName }) => {
                       <tr>
                         <td width="36" valign="top" style="font-size: 20px; line-height: 1;">🛡️</td>
                         <td style="padding-left: 8px;">
-                          <strong style="color: #0f172a; font-size: 14px;">100% Genuine MTC Certified</strong>
+                          <strong style="color: #0f172a; font-size: 14px;">100% Genuine Products</strong>
                           <p style="margin: 3px 0 0 0; color: #64748b; font-size: 12px; line-height: 1.4;">
-                            Factory authentic components with full serial traceability and Mill Test Certificates (MTC).
+                            Factory authentic components with full serial traceability.
                           </p>
                         </td>
                       </tr>

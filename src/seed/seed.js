@@ -204,7 +204,7 @@ export const seedDatabase = async () => {
         },
         packages: [
           { name: 'Single Belt Pack', price: 999, discountPrice: 999, duration: 'Immediate Dispatch', features: ['1x PIX SPC 2360 Belt', 'Free Delhivery', 'Manufacturer Warranty'], isPopular: true },
-          { name: 'Box of 5 Belts (Industrial Pack)', price: 4799, discountPrice: 4799, duration: 'Immediate Dispatch', features: ['5x PIX SPC 2360 Belts', 'Additional 4% bulk savings', 'Priority Delhivery Air Cargo', 'Factory MTC Certificate'], isPopular: false },
+          { name: 'Box of 5 Belts (Industrial Pack)', price: 4799, discountPrice: 4799, duration: 'Immediate Dispatch', features: ['5x PIX SPC 2360 Belts', 'Additional 4% bulk savings', 'Priority Delhivery Air Cargo', '100% Genuine Products Guarantee'], isPopular: false },
         ],
       },
       {
@@ -355,7 +355,7 @@ export const seedDatabase = async () => {
         },
         packages: [
           { name: 'Single Bearing Pack', price: 529, discountPrice: 529, duration: 'Immediate Dispatch', features: ['1x NBC 6405ZZ C3 Bearing', 'Free Delhivery', 'Genuine NBC Seal'], isPopular: true },
-          { name: 'Master Box of 10 Pcs', price: 4990, discountPrice: 4990, duration: 'Immediate Dispatch', features: ['10x NBC 6405ZZ C3 Bearings', 'OEM Factory Sealed Carton', 'Free Priority Delhivery', 'MTC Test Certificate'], isPopular: false },
+          { name: 'Master Box of 10 Pcs', price: 4990, discountPrice: 4990, duration: 'Immediate Dispatch', features: ['10x NBC 6405ZZ C3 Bearings', 'OEM Factory Sealed Carton', 'Free Priority Delhivery', '100% Genuine Products Guarantee'], isPopular: false },
         ],
       },
 
@@ -939,7 +939,7 @@ export const seedDatabase = async () => {
           'Open type configuration for optimum oil lubrication flow',
           '46% Discount off official Timken MRP list with Free Delhivery',
           'All types of Timken bearings (Tapered roller, spherical, ball) available on request',
-          '100% Genuine Timken with hologram security seal and MTC certificate',
+          '100% Genuine Timken with hologram security seal and 100% genuine products guarantee',
         ],
         specifications: {
           'Part Number': '6313 (Open Type)',
@@ -953,8 +953,8 @@ export const seedDatabase = async () => {
           'Freight': 'Delhivery Charges Included',
         },
         packages: [
-          { name: 'Single Timken 6313 Bearing', price: 1944, discountPrice: 1944, duration: 'Immediate Dispatch', features: ['1x Timken 6313 Open Bearing', 'Free Delhivery', 'Timken Hologram Seal', 'MTC Certificate'], isPopular: true },
-          { name: 'Case of 4 Pcs', price: 7490, discountPrice: 7490, duration: 'Immediate Dispatch', features: ['4x Timken 6313 Bearings', 'Priority Express Delhivery', 'OEM Mill Test Certificate'], isPopular: false },
+          { name: 'Single Timken 6313 Bearing', price: 1944, discountPrice: 1944, duration: 'Immediate Dispatch', features: ['1x Timken 6313 Open Bearing', 'Free Delhivery', 'Timken Hologram Seal', '100% Genuine Products Guarantee'], isPopular: true },
+          { name: 'Case of 4 Pcs', price: 7490, discountPrice: 7490, duration: 'Immediate Dispatch', features: ['4x Timken 6313 Bearings', 'Priority Express Delhivery', '100% Genuine Products Guarantee'], isPopular: false },
         ],
       },
 
@@ -982,7 +982,7 @@ export const seedDatabase = async () => {
           '40° Contact angle provides exceptionally high axial thrust load capacity',
           'Available in National (SKF India) & International (Imported European) Stock',
           'Strictly 10% Discount from official SKF MRP ("skf only 10% discount")',
-          '100% Genuine with SKF Authenticate App QR code and Mill Test Certificate',
+          '100% Genuine with SKF Authenticate App QR code and 100% genuine products guarantee',
           'Free insured Delhivery shipping across India',
         ],
         specifications: {
@@ -1252,7 +1252,7 @@ export const seedDatabase = async () => {
       },
       {
         question: 'What is the discount policy on SKF bearings?',
-        answer: 'SKF bearings carry a flat 10% discount from the official SKF MRP price list. Both National (SKF India) and International (Imported European stock) origins are available with complete QR verification and Mill Test Certificates (MTC).',
+        answer: 'SKF bearings carry a flat 10% discount from the official SKF MRP price list. Both National (SKF India) and International (Imported European stock) origins are available with complete QR verification and 100% genuine products.',
         category: 'SKF Bearings',
         displayOrder: 2,
       },
