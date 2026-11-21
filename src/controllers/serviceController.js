@@ -189,7 +189,7 @@ export const getServices = async (req, res, next) => {
     const limitNum = parseInt(limit, 10) || 9;
     const skip = (pageNum - 1) * limitNum;
 
-    const [services, total] = await Promise.all([
+    let [services, total] = await Promise.all([
       Service.find(query)
         .populate('category', 'name slug icon')
         .populate({
@@ -202,6 +202,29 @@ export const getServices = async (req, res, next) => {
         .limit(limitNum),
       Service.countDocuments(query),
     ]);
+
+    // If search was provided and returned 0 results because of a category filter, retry search across all categories
+    if (search && search.trim() && services.length === 0 && query.category) {
+      const fallbackQuery = { ...query };
+      delete fallbackQuery.category;
+      const [fallbackServices, fallbackTotal] = await Promise.all([
+        Service.find(fallbackQuery)
+          .populate('category', 'name slug icon')
+          .populate({
+            path: 'packages',
+            match: { isActive: true },
+            options: { sort: { displayOrder: 1, price: 1 } },
+          })
+          .sort(sortOptions)
+          .skip(skip)
+          .limit(limitNum),
+        Service.countDocuments(fallbackQuery),
+      ]);
+      if (fallbackServices.length > 0) {
+        services = fallbackServices;
+        total = fallbackTotal;
+      }
+    }
 
     let finalServices = services;
     let finalTotal = total;

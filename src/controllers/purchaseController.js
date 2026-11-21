@@ -232,7 +232,7 @@ export const createPurchaseInvoice = async (req, res, next) => {
       discount = 0,
       initialPayment = 0,
       notes = '',
-      receivedBy = 'K. Karthick Kumar',
+      receivedBy = 'Karthick Kumar K',
     } = req.body;
 
     const supplierDoc = await Supplier.findById(supplierId);
@@ -433,7 +433,7 @@ export const recordPurchasePayment = async (req, res, next) => {
       method,
       reference,
       notes,
-      recordedBy: 'K. Karthick Kumar',
+      recordedBy: 'Karthick Kumar K',
     });
 
     invoice.paidAmount = Math.round(((invoice.paidAmount || 0) + paymentAmount) * 100) / 100;

@@ -67,6 +67,12 @@ const userSchema = new mongoose.Schema(
       default: 'new_user',
       index: true,
     },
+    customDiscountPercentage: {
+      type: Number,
+      default: 0, // Admin-assigned custom offer % (e.g. 50% for VIP users)
+      min: 0,
+      max: 100,
+    },
     markupPercentage: {
       type: Number,
       default: 5, // 5% default surcharge for new users; 0% for existing standard

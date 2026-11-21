@@ -14,7 +14,7 @@ export const getSettings = async (req, res, next) => {
         address: '45B/16 Noorullah Mall, Oothumalai Paradesimadam Street, Srivilliputtur, Virudhunagar Dist, Tamilnadu - 626125',
         googleMapsLocation: '45B/16 Noorullah Mall, Oothumalai Paradesimadam Street, Srivilliputtur, Virudhunagar Dist, Tamilnadu - 626125',
         footerDescription: 'Authorized industrial distributor for world-class mechanical transmission belts, bearings, taper pulleys, and industrial equipment.',
-        proprietorName: 'K. Karthick Kumar',
+        proprietorName: 'Karthick Kumar K',
         gstin: '33HONPK5547G2ZK',
       });
     } else {
@@ -41,7 +41,7 @@ export const getSettings = async (req, res, next) => {
         needsSave = true;
       }
       if (!settings.proprietorName) {
-        settings.proprietorName = 'K. Karthick Kumar';
+        settings.proprietorName = 'Karthick Kumar K';
         needsSave = true;
       }
       if (!settings.gstin) {

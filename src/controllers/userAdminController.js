@@ -91,13 +91,14 @@ export const toggleCustomerStatus = async (req, res, next) => {
 
 export const updateCustomerRate = async (req, res, next) => {
   try {
-    const { isNewUser, pricingTier, markupPercentage } = req.body;
+    const { isNewUser, pricingTier, markupPercentage, customDiscountPercentage } = req.body;
     const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ success: false, message: 'User not found' });
 
     if (isNewUser !== undefined) user.isNewUser = Boolean(isNewUser);
     if (pricingTier !== undefined) user.pricingTier = pricingTier;
     if (markupPercentage !== undefined) user.markupPercentage = Number(markupPercentage) || 0;
+    if (customDiscountPercentage !== undefined) user.customDiscountPercentage = Number(customDiscountPercentage) || 0;
 
     await user.save();
 

@@ -171,7 +171,7 @@ const purchaseInvoiceSchema = new mongoose.Schema(
     },
     receivedBy: {
       type: String,
-      default: 'K. Karthick Kumar',
+      default: 'Karthick Kumar K',
     },
   },
   {

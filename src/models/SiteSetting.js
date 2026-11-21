@@ -52,7 +52,7 @@ const siteSettingSchema = new mongoose.Schema(
     },
     proprietorName: {
       type: String,
-      default: 'K. Karthick Kumar',
+      default: 'Karthick Kumar K',
     },
     gstin: {
       type: String,
