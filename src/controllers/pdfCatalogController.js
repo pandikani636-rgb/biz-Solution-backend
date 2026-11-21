@@ -817,7 +817,7 @@ export const uploadPdfCatalog = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Please upload at least one valid PDF document.' });
     }
 
-    const { title } = req.body;
+    const { title, categoryName, categoryId } = req.body;
     const processedCatalogs = [];
     let grandTotalProducts = 0;
     let grandTotalCategories = 0;
@@ -848,6 +848,8 @@ export const uploadPdfCatalog = async (req, res, next) => {
         fileSize: file.size,
         totalCategories,
         totalProducts,
+        categoryName: categoryName || '',
+        categoryId: categoryId || null,
         categories,
         uploadedBy: req.user ? req.user._id : null,
         isActive: true,
@@ -1001,6 +1003,8 @@ export const getPublicPdfCatalog = async (req, res, next) => {
       title: c.title,
       fileName: c.fileName,
       fileUrl: c.fileUrl || '',
+      categoryName: c.categoryName || '',
+      categoryId: c.categoryId || null,
       totalCategories: c.totalCategories || (c.categories ? c.categories.length : 0),
       totalProducts: c.totalProducts || 0,
       createdAt: c.createdAt,

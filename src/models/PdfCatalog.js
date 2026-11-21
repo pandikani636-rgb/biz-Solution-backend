@@ -66,6 +66,16 @@ const pdfCatalogSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    categoryName: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    categoryId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'ServiceCategory',
+      default: null,
+    },
     categories: [pdfCategorySchema],
     uploadedBy: {
       type: mongoose.Schema.Types.ObjectId,
