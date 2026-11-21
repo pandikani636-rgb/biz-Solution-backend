@@ -981,17 +981,26 @@ export const getPublicPdfCatalog = async (req, res, next) => {
     }
 
     if (!activeCatalogs || activeCatalogs.length === 0) {
-      // Fallback default
-      const dummy = await parsePdfCatalogText('', 'Default Industrial Catalog');
+      // Find sample-catalog.pdf on disk if available
+      const candidatePaths = [
+        path.join(process.cwd(), 'public/sample-catalog.pdf'),
+        path.join(process.cwd(), 'backend/public/sample-catalog.pdf'),
+        path.join(process.cwd(), '../backend/public/sample-catalog.pdf'),
+        path.resolve('public/sample-catalog.pdf'),
+      ];
+      const foundSample = candidatePaths.find((p) => fs.existsSync(p));
+
+      const parsed = await parsePdfCatalogText(foundSample || '', 'PIX-Industrial-Belts-Price-List.pdf');
       return res.json({
         success: true,
         data: {
-          title: 'Official Balumuni & Associates Industrial Master Catalog',
-          fileName: 'Official-Industrial-Catalog.pdf',
+          title: parsed.title || 'PIX Industrial Belts Master Price List',
+          fileName: 'PIX-Industrial-Belts-Price-List.pdf',
           fileUrl: '/sample-catalog.pdf',
-          totalCategories: dummy.totalCategories,
-          totalProducts: dummy.totalProducts,
-          categories: dummy.categories,
+          categoryName: 'Power Transmission Belts',
+          totalCategories: parsed.totalCategories,
+          totalProducts: parsed.totalProducts,
+          categories: parsed.categories,
           catalogs: [],
         },
       });
