@@ -140,7 +140,7 @@ export const seedDatabase = async () => {
       name: 'Industrial Bearings',
       slug: 'bearings',
       description: 'Precision deep groove ball bearings, angular contact bearings, shielded ZZ, C3 clearance, and matched sets from NBC, HCH, Timken, and SKF.',
-      image: 'https://images.unsplash.com/photo-1590674899484-d5640e854abe?auto=format&fit=crop&w=800&q=80',
+      image: '/bearings/img10.jpg',
       icon: 'CircleDot',
       displayOrder: 1,
     });
@@ -1064,7 +1064,7 @@ export const seedDatabase = async () => {
         fullDescription: p.fullDescription,
         mainImage: p.mainImage,
         galleryImages: [
-          'https://images.unsplash.com/photo-1590674899484-d5640e854abe?auto=format&fit=crop&w=800&q=80',
+          '/bearings/imgg14.jpg',
           '/banners/img4.jpg',
         ],
         taxRate: 18,

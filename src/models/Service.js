@@ -75,7 +75,7 @@ const serviceSchema = new mongoose.Schema(
     mainImage: {
       type: String,
       required: [true, 'Please provide main service image'],
-      default: 'https://images.unsplash.com/photo-1590674899484-d5640e854abe?auto=format&fit=crop&w=800&q=80',
+      default: '/belts/PIX C 70 Classical V-Belt.jpg',
     },
     galleryImages: {
       type: [String],
