@@ -28,10 +28,18 @@ export const submitEnquiry = async (req, res, next) => {
 
     const isRfq = enquiryType === 'rfq' || enquiryType === 'bulk_order';
     let quotationNumber = '';
+    let monthlySequence = 1;
     if (isRfq) {
-      const year = new Date().getFullYear();
+      const now = new Date();
+      const year = now.getFullYear();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const countThisMonth = await ContactEnquiry.countDocuments({
+        enquiryType: { $in: ['rfq', 'bulk_order'] },
+        createdAt: { $gte: startOfMonth },
+      });
+      monthlySequence = countThisMonth + 1;
       const rand = Math.floor(1000 + Math.random() * 9000);
-      quotationNumber = `QTN-${year}-${rand}`;
+      quotationNumber = `QT-${year}-${rand}`;
     }
 
     // Try finding customer account by token or email
@@ -49,6 +57,7 @@ export const submitEnquiry = async (req, res, next) => {
       message,
       enquiryType,
       quotationNumber,
+      monthlySequence,
       customer: customerId,
       companyName: companyName || '',
       gstin: gstin || '',
@@ -125,14 +134,22 @@ export const getEnquiries = async (req, res, next) => {
     const limitNum = parseInt(limit, 10) || 10;
     const skip = (pageNum - 1) * limitNum;
 
-    const [enquiries, total] = await Promise.all([
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const [enquiries, total, thisMonthTotal] = await Promise.all([
       ContactEnquiry.find(query).populate('customer', 'name email phone avatar').sort({ createdAt: -1 }).skip(skip).limit(limitNum),
       ContactEnquiry.countDocuments(query),
+      ContactEnquiry.countDocuments({
+        ...query,
+        createdAt: { $gte: startOfMonth },
+      }),
     ]);
 
     res.json({
       success: true,
       data: enquiries,
+      thisMonthTotal,
       pagination: {
         total,
         page: pageNum,

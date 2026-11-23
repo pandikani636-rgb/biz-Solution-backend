@@ -48,6 +48,18 @@ export const getSettings = async (req, res, next) => {
         settings.gstin = '33HONPK5547G2ZK';
         needsSave = true;
       }
+      if (settings.defaultTaxRate === undefined || settings.defaultTaxRate === null) {
+        settings.defaultTaxRate = 18;
+        needsSave = true;
+      }
+      if (settings.existingUserDiscountPercentage === undefined || settings.existingUserDiscountPercentage === null) {
+        settings.existingUserDiscountPercentage = 46;
+        needsSave = true;
+      }
+      if (settings.newUserDiscountPercentage === undefined || settings.newUserDiscountPercentage === null) {
+        settings.newUserDiscountPercentage = 40;
+        needsSave = true;
+      }
       if (needsSave) {
         await settings.save();
       }

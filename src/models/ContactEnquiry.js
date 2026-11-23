@@ -43,6 +43,10 @@ const contactEnquirySchema = new mongoose.Schema(
       default: '',
       index: true,
     },
+    monthlySequence: {
+      type: Number,
+      default: 1,
+    },
     customer: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',

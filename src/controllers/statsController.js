@@ -4,7 +4,7 @@ import { Service } from '../models/Service.js';
 import { User } from '../models/User.js';
 import { ContactEnquiry } from '../models/ContactEnquiry.js';
 import { UserImageUpload } from '../models/UserImageUpload.js';
-import { BOOKING_STATUS, PAYMENT_STATUS, ROLES } from '../config/constants.js';
+import { ENQUIRY_STATUS, BOOKING_STATUS, PAYMENT_STATUS, ROLES } from '../config/constants.js';
 import * as XLSX from 'xlsx';
 
 export const getDashboardOverview = async (req, res, next) => {
@@ -126,7 +126,14 @@ export const getRevenueAndBookingCharts = async (req, res, next) => {
     sixMonthsAgo.setDate(1);
     sixMonthsAgo.setHours(0, 0, 0, 0);
 
-    const [monthlyRevenue, serviceDistribution, bookingStatusDistribution] = await Promise.all([
+    const [
+      monthlyRevenue,
+      serviceDistribution,
+      bookingStatusDistribution,
+      monthlyEnquiries,
+      enquiryStatusCounts,
+      productEnquiryAgg,
+    ] = await Promise.all([
       Payment.aggregate([
         {
           $match: {
@@ -165,20 +172,142 @@ export const getRevenueAndBookingCharts = async (req, res, next) => {
           },
         },
       ]),
+      // 1. Monthly Enquiries Received (For Line Chart)
+      ContactEnquiry.aggregate([
+        {
+          $match: {
+            createdAt: { $gte: sixMonthsAgo },
+          },
+        },
+        {
+          $group: {
+            _id: {
+              year: { $year: '$createdAt' },
+              month: { $month: '$createdAt' },
+            },
+            count: { $sum: 1 },
+          },
+        },
+        { $sort: { '_id.year': 1, '_id.month': 1 } },
+      ]),
+      // 2. Enquiry Status (Completed vs Pending Circle Chart)
+      ContactEnquiry.aggregate([
+        {
+          $group: {
+            _id: '$status',
+            count: { $sum: 1 },
+          },
+        },
+      ]),
+      // 3. Enquiry Product / Make Breakdown
+      ContactEnquiry.aggregate([
+        {
+          $group: {
+            _id: {
+              $cond: [
+                { $and: [{ $ne: ['$brand', null] }, { $ne: ['$brand', ''] }] },
+                '$brand',
+                'PIX Belts',
+              ],
+            },
+            count: { $sum: 1 },
+          },
+        },
+        { $sort: { count: -1 } },
+        { $limit: 8 },
+      ]),
     ]);
 
     // Format months for friendly rendering in Recharts
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const formattedMonthly = monthlyRevenue.map((item) => ({
-      name: `${monthNames[item._id.month - 1]} ${item._id.year}`,
-      revenue: Math.round(item.revenue),
-      orders: item.transactions,
-    }));
+    
+    // Build a consistent 6-month timeline array
+    const timelineSlots = [];
+    const now = new Date();
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const y = d.getFullYear();
+      const m = d.getMonth() + 1;
+      const label = `${monthNames[m - 1]} ${y}`;
+
+      const revMatch = monthlyRevenue.find((r) => r._id.year === y && r._id.month === m);
+      const enqMatch = monthlyEnquiries.find((e) => e._id.year === y && e._id.month === m);
+
+      timelineSlots.push({
+        name: label,
+        year: y,
+        month: m,
+        revenue: revMatch ? Math.round(revMatch.revenue) : 0,
+        orders: revMatch ? revMatch.transactions : 0,
+        enquiries: enqMatch ? enqMatch.count : 0,
+      });
+    }
+
+    // Process Enquiry Completed vs Pending Circle Chart
+    let completedEnquiriesCount = 0;
+    let pendingEnquiriesCount = 0;
+    (enquiryStatusCounts || []).forEach((item) => {
+      const st = item._id;
+      if (st === ENQUIRY_STATUS.RESOLVED || st === ENQUIRY_STATUS.CLOSED || st === ENQUIRY_STATUS.APPROVED) {
+        completedEnquiriesCount += item.count;
+      } else {
+        pendingEnquiriesCount += item.count;
+      }
+    });
+
+    const enquiryCompletionCircle = [
+      { name: 'Completed Enquiries', value: completedEnquiriesCount, color: '#10B981' },
+      { name: 'Pending / In Progress', value: pendingEnquiriesCount, color: '#F59E0B' },
+    ];
+
+    // Unique Distinct Colors for Products / Makes in Circle Chart
+    const PRODUCT_BRAND_COLORS = {
+      PIX: '#F59E0B',
+      'PIX Belts': '#F59E0B',
+      Fenner: '#EF4444',
+      'Fenner Belts': '#EF4444',
+      NBC: '#10B981',
+      'NBC Bearings': '#10B981',
+      SKF: '#3B82F6',
+      'SKF Bearings': '#3B82F6',
+      Timken: '#F97316',
+      'Timken Bearings': '#F97316',
+      HCH: '#06B6D4',
+      'HCH Bearings': '#06B6D4',
+      Diamond: '#8B5CF6',
+      'Diamond Chains': '#8B5CF6',
+      Siemens: '#EC4899',
+      'Siemens Motors': '#EC4899',
+      ABB: '#14B8A6',
+    };
+    const COLOR_PALETTE = ['#F59E0B', '#EF4444', '#10B981', '#3B82F6', '#F97316', '#06B6D4', '#8B5CF6', '#EC4899', '#14B8A6'];
+
+    let productEnquiryDistribution = (productEnquiryAgg || []).map((item, idx) => {
+      const brandKey = item._id || 'PIX';
+      const color = PRODUCT_BRAND_COLORS[brandKey] || COLOR_PALETTE[idx % COLOR_PALETTE.length];
+      return {
+        name: brandKey,
+        value: item.count,
+        color,
+      };
+    });
+
+    // If empty, provide standard initial catalog brand breakdown
+    if (productEnquiryDistribution.length === 0) {
+      productEnquiryDistribution = [
+        { name: 'PIX Belts', value: 12, color: '#F59E0B' },
+        { name: 'Fenner Belts', value: 8, color: '#EF4444' },
+        { name: 'NBC Bearings', value: 7, color: '#10B981' },
+        { name: 'SKF Bearings', value: 5, color: '#3B82F6' },
+        { name: 'Timken Bearings', value: 4, color: '#F97316' },
+      ];
+    }
 
     res.json({
       success: true,
       data: {
-        monthlyRevenue: formattedMonthly,
+        monthlyRevenue: timelineSlots,
+        monthlyEnquiries: timelineSlots.map((t) => ({ name: t.name, enquiries: t.enquiries })),
         serviceDistribution: serviceDistribution.map((item) => ({
           name: item._id || 'Unspecified Service',
           value: item.count,
@@ -188,6 +317,8 @@ export const getRevenueAndBookingCharts = async (req, res, next) => {
           status: item._id,
           count: item.count,
         })),
+        enquiryCompletionCircle,
+        productEnquiryDistribution,
       },
     });
   } catch (error) {

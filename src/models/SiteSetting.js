@@ -74,6 +74,14 @@ const siteSettingSchema = new mongoose.Schema(
       type: Number,
       default: 18,
     },
+    existingUserDiscountPercentage: {
+      type: Number,
+      default: 46,
+    },
+    newUserDiscountPercentage: {
+      type: Number,
+      default: 40,
+    },
     socialLinks: {
       facebook: { type: String, default: 'https://facebook.com' },
       twitter: { type: String, default: 'https://twitter.com' },
