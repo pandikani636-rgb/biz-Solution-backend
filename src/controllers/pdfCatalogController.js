@@ -625,6 +625,9 @@ export const parsePdfCatalogText = async (filePath, originalName, directText = '
     }
   } else if (upperText.includes('NBC') || upperName.includes('NBC')) {
     detectedBrand = 'NBC';
+    if (!documentTitle || documentTitle === originalName) {
+      documentTitle = 'NBC Bearings Price List';
+    }
   } else if (upperText.includes('FAG') || upperName.includes('FAG')) {
     detectedBrand = 'FAG';
   } else if (upperText.includes('FENNER') || upperName.includes('FENNER') || upperText.includes('JK FENNER') || upperName.includes('JK FENNER')) {
@@ -891,12 +894,14 @@ export const parsePdfCatalogText = async (filePath, originalName, directText = '
 
       const mainCatName = detectedBrand === 'Timken'
         ? 'Timken Industrial Bearings & Assemblies'
-        : (detectedBrand !== 'General' ? `${detectedBrand} Industrial Components` : 'Extracted Industrial Components');
+        : (detectedBrand === 'NBC'
+          ? 'NBC Industrial Bearings & Components'
+          : (detectedBrand !== 'General' ? `${detectedBrand} Industrial Components` : 'Extracted Industrial Components'));
 
       parsedCategories.push({
         name: mainCatName,
         description: `Verified ${detectedBrand} components extracted from ${originalName}`,
-        image: subcategoriesList[0]?.image || verifiedIndustrialImages['bearing-timken'],
+        image: subcategoriesList[0]?.image || (detectedBrand === 'NBC' ? verifiedIndustrialImages['bearing-deep-groove'] : verifiedIndustrialImages['bearing-timken']),
         subcategories: subcategoriesList,
       });
     }
