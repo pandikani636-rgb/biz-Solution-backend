@@ -71,6 +71,15 @@ const pdfCatalogSchema = new mongoose.Schema(
       default: '',
       trim: true,
     },
+    brand: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    discountPercentage: {
+      type: Number,
+      default: 46,
+    },
     categoryId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'ServiceCategory',

@@ -60,6 +60,25 @@ export const getSettings = async (req, res, next) => {
         settings.newUserDiscountPercentage = 40;
         needsSave = true;
       }
+      if (!settings.brandDiscounts || (settings.brandDiscounts instanceof Map ? settings.brandDiscounts.size === 0 : Object.keys(settings.brandDiscounts).length === 0)) {
+        settings.brandDiscounts = {
+          'PIX': 46,
+          'JK Fenner': 46,
+          'Diamond': 46,
+          'NBC': 46,
+          'FAG': 46,
+          'SKF': 10,
+          'Timken': 46,
+          'NTN': 46,
+          'Siemens': 46,
+          'Crompton': 46,
+          'ABB': 46,
+          'Bharat Bijlee': 46,
+          'Shanthi Gears': 46,
+          'Vignesh Gears': 46,
+        };
+        needsSave = true;
+      }
       if (needsSave) {
         await settings.save();
       }

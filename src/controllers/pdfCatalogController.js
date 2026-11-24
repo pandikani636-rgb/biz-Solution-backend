@@ -580,7 +580,7 @@ const DEFAULT_BEARING_PULLEY_CATALOG = [
 ];
 
 // Main PDF Parsing & Categorization Function
-export const parsePdfCatalogText = async (filePath, originalName, directText = '') => {
+export const parsePdfCatalogText = async (filePath, originalName, directText = '', customDiscount = null, customBrand = null) => {
   let rawText = directText || '';
   let documentTitle = (originalName || 'Industrial Catalog').replace(/\.pdf$/i, '');
   let detectedBrand = 'General';
@@ -606,7 +606,9 @@ export const parsePdfCatalogText = async (filePath, originalName, directText = '
   // Brand Detection
   const upperText = (rawText || '').toUpperCase();
   const upperName = (originalName || '').toUpperCase();
-  if (upperText.includes('PIX TRANSMISSIONS') || upperText.includes('PIX-INDUSTRIAL') || upperName.includes('PIX')) {
+  if (customBrand && customBrand.trim()) {
+    detectedBrand = customBrand.trim();
+  } else if (upperText.includes('PIX TRANSMISSIONS') || upperText.includes('PIX-INDUSTRIAL') || upperName.includes('PIX')) {
     detectedBrand = 'PIX';
     if (!documentTitle || documentTitle === originalName) {
       documentTitle = 'PIX Industrial Belts Price List';
@@ -623,14 +625,34 @@ export const parsePdfCatalogText = async (filePath, originalName, directText = '
     }
   } else if (upperText.includes('NBC') || upperName.includes('NBC')) {
     detectedBrand = 'NBC';
-  } else if (upperText.includes('FENNER') || upperName.includes('FENNER')) {
-    detectedBrand = 'Fenner';
+  } else if (upperText.includes('FAG') || upperName.includes('FAG')) {
+    detectedBrand = 'FAG';
+  } else if (upperText.includes('FENNER') || upperName.includes('FENNER') || upperText.includes('JK FENNER') || upperName.includes('JK FENNER')) {
+    detectedBrand = 'JK Fenner';
+  } else if (upperText.includes('DIAMOND') || upperName.includes('DIAMOND')) {
+    detectedBrand = 'Diamond';
+  } else if (upperText.includes('NTN') || upperName.includes('NTN')) {
+    detectedBrand = 'NTN';
+  } else if (upperText.includes('SIEMENS') || upperName.includes('SIEMENS')) {
+    detectedBrand = 'Siemens';
+  } else if (upperText.includes('ABB') || upperName.includes('ABB')) {
+    detectedBrand = 'ABB';
+  } else if (upperText.includes('CROMPTON') || upperName.includes('CROMPTON')) {
+    detectedBrand = 'Crompton';
+  } else if (upperText.includes('BHARAT') || upperText.includes('BIJLEE') || upperName.includes('BHARAT')) {
+    detectedBrand = 'Bharat Bijlee';
+  } else if (upperText.includes('SHANTHI') || upperName.includes('SHANTHI')) {
+    detectedBrand = 'Shanthi Gears';
+  } else if (upperText.includes('VIGNESH') || upperName.includes('VIGNESH')) {
+    detectedBrand = 'Vignesh Gears';
   } else if (upperText.includes('HCH') || upperName.includes('HCH')) {
     detectedBrand = 'HCH';
   }
 
-  // Standard B2B Discount Percentage
-  const standardDiscount = detectedBrand === 'SKF' ? 10 : (detectedBrand === 'Timken' ? 35 : 46);
+  // B2B Discount Percentage: Use custom discount if supplied by admin, else default
+  const standardDiscount = (customDiscount !== null && customDiscount !== undefined && !isNaN(Number(customDiscount)))
+    ? Number(customDiscount)
+    : (detectedBrand === 'SKF' ? 10 : 46);
 
   // If text contains belt price list items (e.g. A 18 230.00, SPC 2360 2225.00, etc.)
   const isBeltCatalog =
@@ -898,6 +920,8 @@ export const parsePdfCatalogText = async (filePath, originalName, directText = '
     categories: parsedCategories,
     totalCategories: parsedCategories.length,
     totalProducts,
+    brand: detectedBrand,
+    discountPercentage: standardDiscount,
   };
 };
 
@@ -922,7 +946,7 @@ export const uploadPdfCatalog = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Please upload at least one valid PDF document or extracted catalog data.' });
     }
 
-    const { title, categoryName, categoryId } = req.body;
+    const { title, categoryName, categoryId, discountPercentage, brand } = req.body;
     const processedCatalogs = [];
     let grandTotalProducts = 0;
     let grandTotalCategories = 0;
@@ -933,14 +957,23 @@ export const uploadPdfCatalog = async (req, res, next) => {
         const item = clientCatalogs[i];
         console.log(`[PDF Direct Import ${i + 1}/${clientCatalogs.length}] Processing '${item.fileName}' (${item.fileSize} bytes)...`);
 
+        const reqDiscount = item.discountPercentage !== undefined && item.discountPercentage !== null && item.discountPercentage !== ''
+          ? Number(item.discountPercentage)
+          : (discountPercentage !== undefined && discountPercentage !== null && discountPercentage !== '' ? Number(discountPercentage) : null);
+        const reqBrand = item.brand || brand || null;
+
         const {
           title: parsedTitle,
           categories,
           totalCategories,
           totalProducts,
-        } = await parsePdfCatalogText(null, item.fileName, item.extractedText);
+          brand: parsedBrand,
+          discountPercentage: parsedDiscount,
+        } = await parsePdfCatalogText(null, item.fileName, item.extractedText, reqDiscount, reqBrand);
 
         const catalogTitle = item.title || title || parsedTitle || (item.fileName ? item.fileName.replace(/\.pdf$/i, '') : 'Industrial Catalog');
+        const finalBrand = reqBrand || parsedBrand || 'General';
+        const finalDiscount = reqDiscount !== null ? reqDiscount : (parsedDiscount ?? 46);
 
         const catalog = await PdfCatalog.create({
           title: catalogTitle,
@@ -951,6 +984,8 @@ export const uploadPdfCatalog = async (req, res, next) => {
           totalProducts,
           categoryName: item.categoryName || categoryName || '',
           categoryId: item.categoryId || categoryId || null,
+          brand: finalBrand,
+          discountPercentage: finalDiscount,
           categories,
           uploadedBy: req.user ? req.user._id : null,
           isActive: true,
@@ -970,16 +1005,25 @@ export const uploadPdfCatalog = async (req, res, next) => {
 
         const fileUrl = await processUploadedFile(file, req);
 
+        const reqDiscount = discountPercentage !== undefined && discountPercentage !== null && discountPercentage !== ''
+          ? Number(discountPercentage)
+          : null;
+        const reqBrand = brand || null;
+
         const {
           title: parsedTitle,
           categories,
           totalCategories,
           totalProducts,
-        } = await parsePdfCatalogText(file.path, file.originalname);
+          brand: parsedBrand,
+          discountPercentage: parsedDiscount,
+        } = await parsePdfCatalogText(file.path, file.originalname, '', reqDiscount, reqBrand);
 
         const catalogTitle = (pdfFiles.length === 1 && title)
           ? title
           : (parsedTitle || file.originalname.replace(/\.pdf$/i, ''));
+        const finalBrand = reqBrand || parsedBrand || 'General';
+        const finalDiscount = reqDiscount !== null ? reqDiscount : (parsedDiscount ?? 46);
 
         const catalog = await PdfCatalog.create({
           title: catalogTitle,
@@ -990,6 +1034,8 @@ export const uploadPdfCatalog = async (req, res, next) => {
           totalProducts,
           categoryName: categoryName || '',
           categoryId: categoryId || null,
+          brand: finalBrand,
+          discountPercentage: finalDiscount,
           categories,
           uploadedBy: req.user ? req.user._id : null,
           isActive: true,
@@ -1153,12 +1199,15 @@ export const getPublicPdfCatalog = async (req, res, next) => {
       title: c.title,
       fileName: c.fileName,
       fileUrl: c.fileUrl || '',
+      brand: c.brand || '',
+      discountPercentage: c.discountPercentage ?? 46,
       categoryName: c.categoryName || '',
       categoryId: c.categoryId || null,
       totalCategories: c.totalCategories || (c.categories ? c.categories.length : 0),
       totalProducts: c.totalProducts || 0,
       createdAt: c.createdAt,
       isActive: c.isActive,
+      categories: c.categories,
     }));
 
     // Merge categories across all active catalogs
@@ -1421,5 +1470,53 @@ export const getPdfProductByPartNumber = async (req, res, next) => {
     return res.status(404).json({ success: false, message: 'Product not found in any active PDF catalog' });
   } catch (error) {
     next(error);
+  }
+};
+
+export const updateCatalogDiscount = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { discountPercentage, brand, title } = req.body;
+    const catalog = await PdfCatalog.findById(id);
+    if (!catalog) {
+      return res.status(404).json({ success: false, message: 'Catalog not found' });
+    }
+
+    if (discountPercentage !== undefined && discountPercentage !== null && !isNaN(Number(discountPercentage))) {
+      const disc = Math.max(0, Math.min(100, Number(discountPercentage)));
+      catalog.discountPercentage = disc;
+
+      // Recalculate wholesale price for all products in this catalog
+      catalog.categories.forEach((cat) => {
+        cat.subcategories.forEach((sub) => {
+          sub.products.forEach((prod) => {
+            prod.discountPercentage = disc;
+            if (prod.mrp > 0) {
+              prod.wholesalePrice = Math.round(prod.mrp * (1 - disc / 100));
+            }
+            if (brand && brand.trim()) {
+              prod.brand = brand.trim();
+            }
+          });
+        });
+      });
+    }
+
+    if (brand !== undefined && brand.trim()) {
+      catalog.brand = brand.trim();
+    }
+    if (title !== undefined && title.trim()) {
+      catalog.title = title.trim();
+    }
+
+    await catalog.save();
+
+    res.json({
+      success: true,
+      message: `Discount updated to ${catalog.discountPercentage}% for catalog "${catalog.title}". All product rates recalculated!`,
+      data: catalog,
+    });
+  } catch (err) {
+    next(err);
   }
 };

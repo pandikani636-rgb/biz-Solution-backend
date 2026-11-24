@@ -7,6 +7,7 @@ import {
   reprocessPdfCatalog,
   getPdfProductByPartNumber,
   togglePdfCatalogActive,
+  updateCatalogDiscount,
 } from '../controllers/pdfCatalogController.js';
 import { upload } from '../middleware/upload.js';
 import { authenticate, authorize } from '../middleware/auth.js';
@@ -24,6 +25,7 @@ router.get('/product/:partNumber', getPdfProductByPartNumber);
 router.post('/upload', authenticate, authorize(ROLES.ADMIN), upload.any(), uploadPdfCatalog);
 router.post('/admin/reprocess/:id', authenticate, authorize(ROLES.ADMIN), reprocessPdfCatalog);
 router.patch('/admin/toggle-active/:id', authenticate, authorize(ROLES.ADMIN), togglePdfCatalogActive);
+router.patch('/admin/update-discount/:id', authenticate, authorize(ROLES.ADMIN), updateCatalogDiscount);
 router.get('/admin', authenticate, authorize(ROLES.ADMIN), getAdminPdfCatalogs);
 router.delete('/admin/:id', authenticate, authorize(ROLES.ADMIN), deletePdfCatalog);
 

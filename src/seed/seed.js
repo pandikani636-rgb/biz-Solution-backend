@@ -56,7 +56,7 @@ export const seedDatabase = async () => {
       phone: '+91 98765 00001',
       role: ROLES.ADMIN,
       isActive: true,
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
+      avatar: '',
       address: {
         street: 'Industrial Complex, Phase II',
         city: 'Coimbatore',
@@ -76,7 +76,7 @@ export const seedDatabase = async () => {
       isNewUser: false,
       pricingTier: 'existing_standard',
       markupPercentage: 0,
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80',
+      avatar: '',
       address: {
         street: 'Plot 42, GIDC Estate',
         city: 'Ahmedabad',
@@ -96,7 +96,7 @@ export const seedDatabase = async () => {
       isNewUser: true,
       pricingTier: 'new_user',
       markupPercentage: 5,
-      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=300&q=80',
+      avatar: '',
       address: {
         street: '12 Bypass Road',
         city: 'Madurai',
@@ -1290,7 +1290,7 @@ export const seedDatabase = async () => {
         company: 'Apex Textiles & Spinning Mills, Coimbatore',
         rating: 5,
         content: 'BizZolution has transformed our maintenance procurement. Getting 46% off MRP on genuine Fenner C 70 belts and PIX wedge belts with free Delhivery freight has cut our annual transmission maintenance expenses by 35%. Dispatch is always lightning fast.',
-        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80',
+        avatar: '',
         displayOrder: 1,
       },
       {
@@ -1299,7 +1299,7 @@ export const seedDatabase = async () => {
         company: 'Continental Heavy Engineering, Pune',
         rating: 5,
         content: 'Authenticity is our biggest concern with high-capacity angular contact bearings. BizZolution delivered genuine SKF 7322 2X matched sets with official test certificates and verifiable QR codes. Unbeatable service.',
-        avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=300&q=80',
+        avatar: '',
         displayOrder: 2,
       },
       {
@@ -1308,7 +1308,7 @@ export const seedDatabase = async () => {
         company: 'Mehra Roller Mills & Processing, Ahmedabad',
         rating: 5,
         content: 'Their stock of HCH and NBC bearings is extensive. We placed an order for 50 pieces of 6204ZZ and 6306ZZ and received them in pristine factory sealed packing via Delhivery in under 48 hours.',
-        avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=300&q=80',
+        avatar: '',
         displayOrder: 3,
       },
     ]);
