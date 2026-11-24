@@ -580,12 +580,12 @@ const DEFAULT_BEARING_PULLEY_CATALOG = [
 ];
 
 // Main PDF Parsing & Categorization Function
-export const parsePdfCatalogText = async (filePath, originalName) => {
-  let rawText = '';
-  let documentTitle = originalName.replace(/\.pdf$/i, '');
+export const parsePdfCatalogText = async (filePath, originalName, directText = '') => {
+  let rawText = directText || '';
+  let documentTitle = (originalName || 'Industrial Catalog').replace(/\.pdf$/i, '');
   let detectedBrand = 'General';
 
-  if (filePath && fs.existsSync(filePath)) {
+  if (!rawText && filePath && fs.existsSync(filePath)) {
     try {
       const dataBuffer = fs.readFileSync(filePath);
       const { PDFParse } = await import('pdf-parse');
@@ -604,26 +604,33 @@ export const parsePdfCatalogText = async (filePath, originalName) => {
   }
 
   // Brand Detection
-  const upperText = rawText.toUpperCase();
-  if (upperText.includes('PIX TRANSMISSIONS') || upperText.includes('PIX-INDUSTRIAL') || originalName.toUpperCase().includes('PIX')) {
+  const upperText = (rawText || '').toUpperCase();
+  const upperName = (originalName || '').toUpperCase();
+  if (upperText.includes('PIX TRANSMISSIONS') || upperText.includes('PIX-INDUSTRIAL') || upperName.includes('PIX')) {
     detectedBrand = 'PIX';
     if (!documentTitle || documentTitle === originalName) {
       documentTitle = 'PIX Industrial Belts Price List';
     }
-  } else if (upperText.includes('SKF') || originalName.toUpperCase().includes('SKF')) {
-    detectedBrand = 'SKF';
-  } else if (upperText.includes('NBC') || originalName.toUpperCase().includes('NBC')) {
-    detectedBrand = 'NBC';
-  } else if (upperText.includes('FENNER') || originalName.toUpperCase().includes('FENNER')) {
-    detectedBrand = 'Fenner';
-  } else if (upperText.includes('TIMKEN') || originalName.toUpperCase().includes('TIMKEN')) {
+  } else if (upperText.includes('TIMKEN') || upperName.includes('TIMKEN')) {
     detectedBrand = 'Timken';
-  } else if (upperText.includes('HCH') || originalName.toUpperCase().includes('HCH')) {
+    if (!documentTitle || documentTitle === originalName) {
+      documentTitle = 'TIMKEN India Master Bearing Price List';
+    }
+  } else if (upperText.includes('SKF') || upperName.includes('SKF')) {
+    detectedBrand = 'SKF';
+    if (!documentTitle || documentTitle === originalName) {
+      documentTitle = 'SKF Industrial Bearings Price List';
+    }
+  } else if (upperText.includes('NBC') || upperName.includes('NBC')) {
+    detectedBrand = 'NBC';
+  } else if (upperText.includes('FENNER') || upperName.includes('FENNER')) {
+    detectedBrand = 'Fenner';
+  } else if (upperText.includes('HCH') || upperName.includes('HCH')) {
     detectedBrand = 'HCH';
   }
 
   // Standard B2B Discount Percentage
-  const standardDiscount = detectedBrand === 'SKF' ? 10 : 46;
+  const standardDiscount = detectedBrand === 'SKF' ? 10 : (detectedBrand === 'Timken' ? 35 : 46);
 
   // If text contains belt price list items (e.g. A 18 230.00, SPC 2360 2225.00, etc.)
   const isBeltCatalog =
@@ -631,7 +638,7 @@ export const parsePdfCatalogText = async (filePath, originalName) => {
     upperText.includes('V-BELT') ||
     upperText.includes('WEDGE BELT') ||
     upperText.includes('PIX TRANSMISSIONS') ||
-    originalName.toLowerCase().includes('belt');
+    upperName.includes('BELT');
 
   let parsedCategories = [];
 
@@ -733,54 +740,142 @@ export const parsePdfCatalogText = async (filePath, originalName) => {
     }
   }
 
-  // If general industrial catalog or no belt match found, parse generic tabular rows
-  if (parsedCategories.length === 0 && rawText.length > 100) {
+  // If general industrial catalog or no belt match found, parse generic tabular rows or bearing components
+  if (parsedCategories.length === 0 && rawText.length > 50) {
     const lines = rawText.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
     const genericProducts = [];
 
-    lines.forEach((line) => {
-      const tokens = line.split(/\s{2,}|\t|,/);
-      if (tokens.length >= 2) {
-        const potentialPart = tokens[0].trim();
-        const priceCandidate = parseFloat(tokens[tokens.length - 1]);
-        if (potentialPart.length >= 2 && potentialPart.length <= 25 && !isNaN(priceCandidate) && priceCandidate > 0) {
-          const mrp = priceCandidate;
-          const wholesalePrice = Math.round(mrp * (1 - standardDiscount / 100));
-          genericProducts.push({
-            partNumber: potentialPart,
-            name: `${detectedBrand} ${tokens[1] || potentialPart} Industrial Component`,
-            brand: detectedBrand,
-            section: line.toLowerCase().includes('bearing') ? 'Ball Bearing' : 'Industrial Part',
-            categoryName: 'Extracted Industrial Components',
-            subcategoryName: 'Standard Stock Components',
-            description: `Extracted from PDF ${originalName}`,
-            image: verifiedIndustrialImages['bearing-deep-groove'],
-            mrp,
-            discountPercentage: standardDiscount,
-            wholesalePrice,
-            specifications: `Technical Part ${potentialPart}`,
-            inStock: true,
-          });
+    // Strategy A: Regex match part and decimal price across text e.g. "6205-2RS 1450.00", "LM11949/10 2340.00", "SET4 1850.00"
+    const itemRegex = /\b([A-Z0-9]+(?:[\/\.\-][A-Z0-9]+)*(?:\s+[A-Z0-9]+)?)\s+(?:INR|Rs\.?|₹)?\s*(\d{2,}(?:\.\d{2})?)\b/gi;
+    let match;
+    const seenParts = new Set();
+
+    while ((match = itemRegex.exec(rawText)) !== null) {
+      const part = match[1].trim();
+      const price = parseFloat(match[2]);
+
+      const isNoise =
+        part.startsWith('Ref') ||
+        part.startsWith('Tel') ||
+        part.includes('April') ||
+        part.includes('HSN') ||
+        part.startsWith('No') ||
+        part.startsWith('MOQ') ||
+        part.startsWith('W.e.f') ||
+        part.startsWith('GST') ||
+        part.includes('LIMITED') ||
+        part.includes('ROAD') ||
+        part.length < 2 ||
+        part.length > 28;
+
+      if (!isNoise && price > 0 && !seenParts.has(part)) {
+        seenParts.add(part);
+        const mrp = price;
+        const wholesalePrice = Math.round(mrp * (1 - standardDiscount / 100));
+
+        // Subcategory grouping
+        let subcat = 'Precision Bearing Components';
+        let section = 'Industrial Component';
+        let prodImage = verifiedIndustrialImages['bearing-timken'] || verifiedIndustrialImages['bearing-deep-groove'];
+
+        const upperPart = part.toUpperCase();
+        if (upperPart.startsWith('LM') || upperPart.startsWith('HM') || upperPart.startsWith('SET') || /^(30|31|32|33)\d{3}/.test(upperPart)) {
+          subcat = 'Tapered Roller Bearings (Cone & Cup)';
+          section = 'Tapered Roller Bearing';
+          prodImage = verifiedIndustrialImages['bearing-timken'] || verifiedIndustrialImages['bearing-heavy'];
+        } else if (/^(60|62|63|64|160|618|619)\d{2}/.test(upperPart)) {
+          subcat = 'Deep Groove Ball Bearings';
+          section = 'Deep Groove Ball Bearing';
+          prodImage = verifiedIndustrialImages['bearing-deep-groove'];
+        } else if (/^(22|23|24|NU|NJ|NUP)\d{2,3}/.test(upperPart)) {
+          subcat = 'Spherical & Cylindrical Roller Bearings';
+          section = 'Roller Bearing';
+          prodImage = verifiedIndustrialImages['bearing-heavy'];
+        } else if (/^(UC|UCP|UCF|UCT)/.test(upperPart)) {
+          subcat = 'Pillow Block & Housed Units';
+          section = 'Housed Bearing Unit';
+          prodImage = verifiedIndustrialImages['bearing-angular'] || verifiedIndustrialImages['bearing-timken'];
         }
+
+        genericProducts.push({
+          partNumber: part,
+          name: `${detectedBrand} ${part} ${section}`,
+          brand: detectedBrand,
+          section,
+          categoryName: detectedBrand === 'Timken' ? 'Timken Industrial Bearings & Assemblies' : 'Extracted Industrial Components',
+          subcategoryName: subcat,
+          description: `Authentic ${detectedBrand} component extracted from official catalog ${originalName}`,
+          image: prodImage,
+          mrp,
+          discountPercentage: standardDiscount,
+          wholesalePrice,
+          specifications: `Technical Part Code: ${part}`,
+          inStock: true,
+        });
       }
-    });
+    }
+
+    // Strategy B: Fallback line token split if regex found fewer than 5 items
+    if (genericProducts.length < 5) {
+      lines.forEach((line) => {
+        const tokens = line.split(/\s{2,}|\t|,/);
+        if (tokens.length >= 2) {
+          const potentialPart = tokens[0].trim();
+          const priceCandidate = parseFloat(tokens[tokens.length - 1]);
+          if (potentialPart.length >= 2 && potentialPart.length <= 25 && !isNaN(priceCandidate) && priceCandidate > 0 && !seenParts.has(potentialPart)) {
+            seenParts.add(potentialPart);
+            const mrp = priceCandidate;
+            const wholesalePrice = Math.round(mrp * (1 - standardDiscount / 100));
+            genericProducts.push({
+              partNumber: potentialPart,
+              name: `${detectedBrand} ${tokens[1] || potentialPart} Industrial Component`,
+              brand: detectedBrand,
+              section: line.toLowerCase().includes('bearing') ? 'Ball Bearing' : 'Industrial Part',
+              categoryName: detectedBrand === 'Timken' ? 'Timken Industrial Bearings & Assemblies' : 'Extracted Industrial Components',
+              subcategoryName: 'Standard Stock Components',
+              description: `Extracted from PDF ${originalName}`,
+              image: verifiedIndustrialImages['bearing-timken'] || verifiedIndustrialImages['bearing-deep-groove'],
+              mrp,
+              discountPercentage: standardDiscount,
+              wholesalePrice,
+              specifications: `Technical Part ${potentialPart}`,
+              inStock: true,
+            });
+          }
+        }
+      });
+    }
 
     if (genericProducts.length > 0) {
-      const genericImage = await fetchInternetProductImage(`${detectedBrand} industrial mechanical parts`, 'bearing-deep-groove');
-      genericProducts.forEach((p) => (p.image = genericImage));
+      // Group products by subcategory
+      const subcatMap = new Map();
+      genericProducts.forEach((p) => {
+        const sName = p.subcategoryName || 'Standard Stock Components';
+        if (!subcatMap.has(sName)) {
+          subcatMap.set(sName, []);
+        }
+        subcatMap.get(sName).push(p);
+      });
+
+      const subcategoriesList = [];
+      subcatMap.forEach((prods, sName) => {
+        subcategoriesList.push({
+          name: sName,
+          description: `${detectedBrand} genuine parts with verified B2B pricing`,
+          image: prods[0]?.image || verifiedIndustrialImages['bearing-timken'],
+          products: prods,
+        });
+      });
+
+      const mainCatName = detectedBrand === 'Timken'
+        ? 'Timken Industrial Bearings & Assemblies'
+        : (detectedBrand !== 'General' ? `${detectedBrand} Industrial Components` : 'Extracted Industrial Components');
 
       parsedCategories.push({
-        name: 'Extracted Industrial Components',
-        description: `Verified parts extracted from ${originalName}`,
-        image: genericImage,
-        subcategories: [
-          {
-            name: 'Standard Stock Components',
-            description: `Parts extracted with verified pricing`,
-            image: genericImage,
-            products: genericProducts,
-          },
-        ],
+        name: mainCatName,
+        description: `Verified ${detectedBrand} components extracted from ${originalName}`,
+        image: subcategoriesList[0]?.image || verifiedIndustrialImages['bearing-timken'],
+        subcategories: subcategoriesList,
       });
     }
   }
@@ -810,11 +905,21 @@ export const uploadPdfCatalog = async (req, res, next) => {
   try {
     const rawFiles = req.files && req.files.length > 0 ? req.files : (req.file ? [req.file] : []);
     const pdfFiles = rawFiles.filter(
-      (f) => f.originalname.toLowerCase().endsWith('.pdf') || f.mimetype === 'application/pdf'
+      (f) => f.originalname?.toLowerCase().endsWith('.pdf') || f.mimetype === 'application/pdf'
     );
 
-    if (pdfFiles.length === 0) {
-      return res.status(400).json({ success: false, message: 'Please upload at least one valid PDF document.' });
+    // Support client-side extracted text (JSON) to seamlessly bypass Vercel's 4.5MB payload limit
+    const clientCatalogs = req.body.catalogs || (req.body.extractedText ? [{
+      title: req.body.title,
+      fileName: req.body.fileName || 'Uploaded-Catalog.pdf',
+      fileSize: req.body.fileSize || 0,
+      extractedText: req.body.extractedText,
+      categoryName: req.body.categoryName,
+      categoryId: req.body.categoryId,
+    }] : []);
+
+    if (pdfFiles.length === 0 && clientCatalogs.length === 0) {
+      return res.status(400).json({ success: false, message: 'Please upload at least one valid PDF document or extracted catalog data.' });
     }
 
     const { title, categoryName, categoryId } = req.body;
@@ -822,61 +927,97 @@ export const uploadPdfCatalog = async (req, res, next) => {
     let grandTotalProducts = 0;
     let grandTotalCategories = 0;
 
-    for (let i = 0; i < pdfFiles.length; i++) {
-      const file = pdfFiles[i];
-      console.log(`[PDF Upload ${i + 1}/${pdfFiles.length}] Processing '${file.originalname}' (${file.size} bytes)...`);
+    // 1. Process client-extracted catalogs (JSON payloads, immune to Vercel body limits)
+    if (clientCatalogs.length > 0) {
+      for (let i = 0; i < clientCatalogs.length; i++) {
+        const item = clientCatalogs[i];
+        console.log(`[PDF Direct Import ${i + 1}/${clientCatalogs.length}] Processing '${item.fileName}' (${item.fileSize} bytes)...`);
 
-      const fileUrl = await processUploadedFile(file, req);
+        const {
+          title: parsedTitle,
+          categories,
+          totalCategories,
+          totalProducts,
+        } = await parsePdfCatalogText(null, item.fileName, item.extractedText);
 
-      const {
-        title: parsedTitle,
-        categories,
-        totalCategories,
-        totalProducts,
-      } = await parsePdfCatalogText(file.path, file.originalname);
+        const catalogTitle = item.title || title || parsedTitle || (item.fileName ? item.fileName.replace(/\.pdf$/i, '') : 'Industrial Catalog');
 
-      // If user provided custom title and only 1 file is uploaded, use it. Otherwise use parsed or filename
-      const catalogTitle = (pdfFiles.length === 1 && title)
-        ? title
-        : (parsedTitle || file.originalname.replace(/\.pdf$/i, ''));
+        const catalog = await PdfCatalog.create({
+          title: catalogTitle,
+          fileName: item.fileName || 'Uploaded-Catalog.pdf',
+          fileUrl: item.fileUrl || '/sample-catalog.pdf',
+          fileSize: item.fileSize || 0,
+          totalCategories,
+          totalProducts,
+          categoryName: item.categoryName || categoryName || '',
+          categoryId: item.categoryId || categoryId || null,
+          categories,
+          uploadedBy: req.user ? req.user._id : null,
+          isActive: true,
+        });
 
-      // Keep active: do NOT deactivate other catalogs! All uploaded catalogs stay active together!
-      const catalog = await PdfCatalog.create({
-        title: catalogTitle,
-        fileName: file.originalname,
-        fileUrl,
-        fileSize: file.size,
-        totalCategories,
-        totalProducts,
-        categoryName: categoryName || '',
-        categoryId: categoryId || null,
-        categories,
-        uploadedBy: req.user ? req.user._id : null,
-        isActive: true,
-      });
+        processedCatalogs.push(catalog);
+        grandTotalProducts += totalProducts;
+        grandTotalCategories += totalCategories;
+      }
+    }
 
-      processedCatalogs.push(catalog);
-      grandTotalProducts += totalProducts;
-      grandTotalCategories += totalCategories;
+    // 2. Process multipart uploaded files (for files <= 4MB or on persistent servers)
+    if (pdfFiles.length > 0) {
+      for (let i = 0; i < pdfFiles.length; i++) {
+        const file = pdfFiles[i];
+        console.log(`[PDF Upload ${i + 1}/${pdfFiles.length}] Processing '${file.originalname}' (${file.size} bytes)...`);
+
+        const fileUrl = await processUploadedFile(file, req);
+
+        const {
+          title: parsedTitle,
+          categories,
+          totalCategories,
+          totalProducts,
+        } = await parsePdfCatalogText(file.path, file.originalname);
+
+        const catalogTitle = (pdfFiles.length === 1 && title)
+          ? title
+          : (parsedTitle || file.originalname.replace(/\.pdf$/i, ''));
+
+        const catalog = await PdfCatalog.create({
+          title: catalogTitle,
+          fileName: file.originalname,
+          fileUrl,
+          fileSize: file.size,
+          totalCategories,
+          totalProducts,
+          categoryName: categoryName || '',
+          categoryId: categoryId || null,
+          categories,
+          uploadedBy: req.user ? req.user._id : null,
+          isActive: true,
+        });
+
+        processedCatalogs.push(catalog);
+        grandTotalProducts += totalProducts;
+        grandTotalCategories += totalCategories;
+      }
     }
 
     // Notify administrators
     await notifyAdmins({
-      title: `${pdfFiles.length} PDF Product Catalog(s) Imported & Categorized`,
-      message: `Successfully processed ${pdfFiles.length} catalog file(s): extracted ${grandTotalProducts} products across ${grandTotalCategories} categories with verified genuine images.`,
+      title: `${processedCatalogs.length} PDF Product Catalog(s) Imported & Categorized`,
+      message: `Successfully processed ${processedCatalogs.length} catalog file(s): extracted ${grandTotalProducts} products across ${grandTotalCategories} categories with verified genuine images.`,
       type: 'system',
       link: '/admin/pdf-catalog',
     });
 
-    const isPlural = pdfFiles.length > 1;
+    const isPlural = processedCatalogs.length > 1;
     res.status(201).json({
       success: true,
       message: isPlural
-        ? `Successfully processed and imported ${pdfFiles.length} PDF catalogs (${grandTotalProducts} products across ${grandTotalCategories} categories). All catalogs are now live on the Products page!`
-        : `PDF Catalog '${processedCatalogs[0].title}' successfully processed: ${grandTotalProducts} products extracted and live on the Products page!`,
+        ? `Successfully processed and imported ${processedCatalogs.length} PDF catalogs (${grandTotalProducts} products across ${grandTotalCategories} categories). All catalogs are now live on the Products page!`
+        : `PDF Catalog '${processedCatalogs[0]?.title}' successfully processed: ${grandTotalProducts} products extracted and live on the Products page!`,
       data: isPlural ? processedCatalogs : processedCatalogs[0],
       catalogs: processedCatalogs,
-      totalFiles: pdfFiles.length,
+      totalFiles: processedCatalogs.length,
       grandTotalProducts,
     });
   } catch (error) {
