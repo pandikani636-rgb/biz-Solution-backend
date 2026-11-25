@@ -119,6 +119,32 @@ export const seedDatabase = async () => {
       currency: 'INR',
       currencySymbol: '₹',
       defaultTaxRate: 18,
+      existingUserDiscountPercentage: 48,
+      newUserDiscountPercentage: 40,
+      categoryDiscounts: {
+        'Belts': 48,
+        'Power Transmission Belts': 48,
+        'Pulleys': 25,
+        'Bush Pulleys & Taper Bushes': 25,
+        'Bearings': 48,
+        'Industrial Bearings': 48,
+      },
+      brandDiscounts: {
+        'PIX': 48,
+        'JK Fenner': 25,
+        'Diamond': 48,
+        'NBC': 48,
+        'FAG': 48,
+        'SKF': 10,
+        'Timken': 48,
+        'NTN': 48,
+        'Siemens': 48,
+        'Crompton': 48,
+        'ABB': 48,
+        'Bharat Bijlee': 48,
+        'Shanthi Gears': 48,
+        'Vignesh Gears': 48,
+      },
       socialLinks: {
         facebook: 'https://facebook.com/bizzolution',
         twitter: 'https://twitter.com/bizzolution',
@@ -168,7 +194,7 @@ export const seedDatabase = async () => {
     // Helper for product seeding
     const productsData = [
       // ---------------------------------------------
-      // PIX - MAKE (BELT SECTION) - 46% OFF MRP, DELHIVERY INCLUDED
+      // PIX - MAKE (BELT SECTION) - 48% OFF MRP, DELHIVERY INCLUDED
       // ---------------------------------------------
       {
         name: 'PIX SPC 2360 Wedge Belt',
@@ -177,7 +203,7 @@ export const seedDatabase = async () => {
         section: 'Belt',
         category: catBelts._id,
         mrp: 1850,
-        discountPercentage: 46,
+        discountPercentage: 48,
         basePrice: 999,
         discountPrice: 999,
         deliveryIncluded: true,
@@ -189,7 +215,7 @@ export const seedDatabase = async () => {
         features: [
           'High power transmission capability (up to 3x standard classical belts)',
           'SPC Section: Top Width 22mm, Thickness 18mm, Pitch Length 2360mm',
-          '46% Discount from official MRP with Free Delhivery freight',
+          '48% Discount from official MRP with Free Delhivery freight',
           'Anti-static and oil-resistant synthetic chloroprene rubber',
           'Meets ISO 4184 & DIN 7753 standards',
         ],
@@ -214,7 +240,7 @@ export const seedDatabase = async () => {
         section: 'Belt',
         category: catBelts._id,
         mrp: 5400,
-        discountPercentage: 46,
+        discountPercentage: 48,
         basePrice: 2916,
         discountPrice: 2916,
         deliveryIncluded: true,
@@ -226,7 +252,7 @@ export const seedDatabase = async () => {
         features: [
           'Narrow Deep Wedge 8V cross-section: 1.0 inch (25mm) top width, 0.9 inch (23mm) height',
           'Effective Length: 190.0 inches (4826 mm)',
-          '46% Discount off official MRP with Delhivery delivery charge included',
+          '48% Discount off official MRP with Delhivery delivery charge included',
           'Extreme resistance to shock-loads and abrasive mill dust',
           '100% Genuine PIX manufacturer guarantee',
         ],
@@ -251,7 +277,7 @@ export const seedDatabase = async () => {
         section: 'Belt',
         category: catBelts._id,
         mrp: 2480,
-        discountPercentage: 46,
+        discountPercentage: 48,
         basePrice: 1339,
         discountPrice: 1339,
         deliveryIncluded: true,
@@ -262,7 +288,7 @@ export const seedDatabase = async () => {
         mainImage: '/belts/PIX SPC PT 3150 Power Transmission.jpg',
         features: [
           'Pitch Length: 3150 mm (SPC Section)',
-          '46% Discount from list price with Delhivery freight included',
+          '48% Discount from list price with Delhivery freight included',
           'Low elongation cord construction ensures minimal re-tensioning',
           'Resistant to thermal degradation up to 85°C',
         ],
@@ -286,7 +312,7 @@ export const seedDatabase = async () => {
         section: 'Belt',
         category: catBelts._id,
         mrp: 1120,
-        discountPercentage: 46,
+        discountPercentage: 48,
         basePrice: 605,
         discountPrice: 605,
         deliveryIncluded: true,
@@ -297,7 +323,7 @@ export const seedDatabase = async () => {
         mainImage: '/belts/PIX C 70 Classical V-Belt.jpg',
         features: [
           'C Section dimensions: Top width 22mm, Height 14mm, Inside Length 70 inches',
-          '46% Discount off official MRP with free Delhivery freight',
+          '48% Discount off official MRP with free Delhivery freight',
           'Dual fabric wrapped jacket for maximum wear resistance',
           'ISO 9001 certified PIX manufacturing quality',
         ],
@@ -317,7 +343,7 @@ export const seedDatabase = async () => {
       },
 
       // ---------------------------------------------
-      // NBC - MAKE (BEARING SECTION) - 46% OFF MRP, DELHIVERY INCLUDED
+      // NBC - MAKE (BEARING SECTION) - 48% OFF MRP, DELHIVERY INCLUDED
       // ---------------------------------------------
       {
         name: 'NBC 6405ZZ C3 Bearing',
@@ -326,7 +352,7 @@ export const seedDatabase = async () => {
         section: 'Bearing',
         category: catBearings._id,
         mrp: 980,
-        discountPercentage: 46,
+        discountPercentage: 48,
         basePrice: 529,
         discountPrice: 529,
         deliveryIncluded: true,
@@ -339,7 +365,7 @@ export const seedDatabase = async () => {
           'Bore: 25 mm, Outer Diameter: 80 mm, Width: 21 mm (Heavy 6400 series)',
           'Dual metal shields (ZZ) prevent contaminant ingress while retaining factory grease',
           'C3 internal radial clearance for high-temperature and high-speed operation',
-          '46% Discount off official NBC MRP with Delhivery delivery charge included',
+          '48% Discount off official NBC MRP with Delhivery delivery charge included',
           '100% Genuine NBC OEM packaging with laser etched traceability',
         ],
         specifications: {
@@ -360,7 +386,7 @@ export const seedDatabase = async () => {
       },
 
       // ---------------------------------------------
-      // HCH - MAKE (BEARING SECTION) - 46% OFF MRP, DELHIVERY INCLUDED
+      // HCH - MAKE (BEARING SECTION) - 48% OFF MRP, DELHIVERY INCLUDED
       // ---------------------------------------------
       {
         name: 'HCH 6203 Deep Groove Ball Bearing',
@@ -369,7 +395,7 @@ export const seedDatabase = async () => {
         section: 'Bearing',
         category: catBearings._id,
         mrp: 145,
-        discountPercentage: 46,
+        discountPercentage: 48,
         basePrice: 78,
         discountPrice: 78,
         deliveryIncluded: true,
@@ -381,7 +407,7 @@ export const seedDatabase = async () => {
         features: [
           'Dimensions: 17 mm Bore x 40 mm OD x 12 mm Width',
           'Open design for circulating oil or custom grease lubrication',
-          '46% Discount off MRP list including Delhivery freight',
+          '48% Discount off MRP list including Delhivery freight',
           'Low vibration (Z2/V2) and high rotational speed capability',
         ],
         specifications: {
@@ -406,7 +432,7 @@ export const seedDatabase = async () => {
         section: 'Bearing',
         category: catBearings._id,
         mrp: 180,
-        discountPercentage: 46,
+        discountPercentage: 48,
         basePrice: 97,
         discountPrice: 97,
         deliveryIncluded: true,
@@ -417,7 +443,7 @@ export const seedDatabase = async () => {
         mainImage: '/bearings/img6.jpg',
         features: [
           'Dimensions: 20 mm Bore x 47 mm OD x 14 mm Width',
-          '46% Discount off list price with Delhivery charge included',
+          '48% Discount off list price with Delhivery charge included',
           'Super-finished raceways for whisper-quiet operation',
         ],
         specifications: {
@@ -441,7 +467,7 @@ export const seedDatabase = async () => {
         section: 'Bearing',
         category: catBearings._id,
         mrp: 235,
-        discountPercentage: 46,
+        discountPercentage: 48,
         basePrice: 127,
         discountPrice: 127,
         deliveryIncluded: true,
@@ -452,7 +478,7 @@ export const seedDatabase = async () => {
         mainImage: '/bearings/img11.jpg',
         features: [
           'Dimensions: 25 mm Bore x 52 mm OD x 15 mm Width',
-          '46% Discount off official MRP with Delhivery delivery charge included',
+          '48% Discount off official MRP with Delhivery delivery charge included',
           'Precision grade steel balls and pressed steel cage',
         ],
         specifications: {
@@ -475,7 +501,7 @@ export const seedDatabase = async () => {
         section: 'Bearing',
         category: catBearings._id,
         mrp: 340,
-        discountPercentage: 46,
+        discountPercentage: 48,
         basePrice: 184,
         discountPrice: 184,
         deliveryIncluded: true,
@@ -486,7 +512,7 @@ export const seedDatabase = async () => {
         mainImage: '/bearings/img8.jpg',
         features: [
           'Dimensions: 25 mm Bore x 62 mm OD x 17 mm Width',
-          '46% Discount off official MRP with Free Delhivery',
+          '48% Discount off official MRP with Free Delhivery',
           'Heavy series load-carrying capacity',
         ],
         specifications: {
@@ -509,7 +535,7 @@ export const seedDatabase = async () => {
         section: 'Bearing',
         category: catBearings._id,
         mrp: 290,
-        discountPercentage: 46,
+        discountPercentage: 48,
         basePrice: 157,
         discountPrice: 157,
         deliveryIncluded: true,
@@ -520,7 +546,7 @@ export const seedDatabase = async () => {
         mainImage: '/bearings/img5.jpg',
         features: [
           'Set includes 1 pc 6201 and 1 pc 6202',
-          '46% Discount off official MRP with Free Delhivery',
+          '48% Discount off official MRP with Free Delhivery',
           'Specially packaged for electric motor armature replacement',
         ],
         specifications: {
@@ -542,7 +568,7 @@ export const seedDatabase = async () => {
         section: 'Bearing',
         category: catBearings._id,
         mrp: 165,
-        discountPercentage: 46,
+        discountPercentage: 48,
         basePrice: 89,
         discountPrice: 89,
         deliveryIncluded: true,
@@ -554,7 +580,7 @@ export const seedDatabase = async () => {
         features: [
           'Dimensions: 17 mm Bore x 40 mm OD x 12 mm Width',
           'ZZ Dual Steel Shields for maintenance-free dust resistance',
-          '46% Discount off list price with Free Delhivery delivery',
+          '48% Discount off list price with Free Delhivery delivery',
         ],
         specifications: {
           'Part Number': '6203-ZZ',
@@ -576,7 +602,7 @@ export const seedDatabase = async () => {
         section: 'Bearing',
         category: catBearings._id,
         mrp: 205,
-        discountPercentage: 46,
+        discountPercentage: 48,
         basePrice: 111,
         discountPrice: 111,
         deliveryIncluded: true,
@@ -587,7 +613,7 @@ export const seedDatabase = async () => {
         mainImage: '/bearings/img7.jpg',
         features: [
           'Dimensions: 20 mm Bore x 47 mm OD x 14 mm Width',
-          '46% Discount off MRP with Delhivery freight included',
+          '48% Discount off MRP with Delhivery freight included',
         ],
         specifications: {
           'Part Number': '6204-ZZ',
@@ -609,7 +635,7 @@ export const seedDatabase = async () => {
         section: 'Bearing',
         category: catBearings._id,
         mrp: 265,
-        discountPercentage: 46,
+        discountPercentage: 48,
         basePrice: 143,
         discountPrice: 143,
         deliveryIncluded: true,
@@ -620,7 +646,7 @@ export const seedDatabase = async () => {
         mainImage: '/bearings/img4.jpg',
         features: [
           'Dimensions: 25 mm Bore x 52 mm OD x 15 mm Width',
-          '46% Discount off MRP list including Delhivery shipping',
+          '48% Discount off MRP list including Delhivery shipping',
         ],
         specifications: {
           'Part Number': '6205-ZZ',
@@ -642,7 +668,7 @@ export const seedDatabase = async () => {
         section: 'Bearing',
         category: catBearings._id,
         mrp: 385,
-        discountPercentage: 46,
+        discountPercentage: 48,
         basePrice: 208,
         discountPrice: 208,
         deliveryIncluded: true,
@@ -653,7 +679,7 @@ export const seedDatabase = async () => {
         mainImage: '/bearings/img4.jpg',
         features: [
           'Dimensions: 25 mm Bore x 62 mm OD x 17 mm Width',
-          '46% Discount off list price with Free Delhivery delivery',
+          '48% Discount off list price with Free Delhivery delivery',
         ],
         specifications: {
           'Part Number': '6305-ZZ',
@@ -675,7 +701,7 @@ export const seedDatabase = async () => {
         section: 'Bearing',
         category: catBearings._id,
         mrp: 590,
-        discountPercentage: 46,
+        discountPercentage: 48,
         basePrice: 319,
         discountPrice: 319,
         deliveryIncluded: true,
@@ -686,7 +712,7 @@ export const seedDatabase = async () => {
         mainImage: '/bearings/img15.jpg',
         features: [
           'Dimensions: 35 mm Bore x 80 mm OD x 21 mm Width',
-          '46% Discount off MRP list including Delhivery freight',
+          '48% Discount off MRP list including Delhivery freight',
         ],
         specifications: {
           'Part Number': '6307',
@@ -709,7 +735,7 @@ export const seedDatabase = async () => {
         section: 'Bearing',
         category: catBearings._id,
         mrp: 480,
-        discountPercentage: 46,
+        discountPercentage: 48,
         basePrice: 259,
         discountPrice: 259,
         deliveryIncluded: true,
@@ -720,7 +746,7 @@ export const seedDatabase = async () => {
         mainImage: '/bearings/img9.jpg',
         features: [
           'Dimensions: 30 mm Bore x 72 mm OD x 19 mm Width',
-          '46% Discount off MRP with Free Delhivery delivery',
+          '48% Discount off MRP with Free Delhivery delivery',
         ],
         specifications: {
           'Part Number': '6306',
@@ -743,7 +769,7 @@ export const seedDatabase = async () => {
         section: 'Bearing',
         category: catBearings._id,
         mrp: 950,
-        discountPercentage: 46,
+        discountPercentage: 48,
         basePrice: 513,
         discountPrice: 513,
         deliveryIncluded: true,
@@ -754,7 +780,7 @@ export const seedDatabase = async () => {
         mainImage: '/bearings/imgg14.jpg',
         features: [
           'Dimensions: 45 mm Bore x 100 mm OD x 25 mm Width',
-          '46% Discount off MRP list including Delhivery freight',
+          '48% Discount off MRP list including Delhivery freight',
         ],
         specifications: {
           'Part Number': '6309',
@@ -776,7 +802,7 @@ export const seedDatabase = async () => {
         section: 'Bearing',
         category: catBearings._id,
         mrp: 530,
-        discountPercentage: 46,
+        discountPercentage: 48,
         basePrice: 286,
         discountPrice: 286,
         deliveryIncluded: true,
@@ -787,7 +813,7 @@ export const seedDatabase = async () => {
         mainImage: '/bearings/img9.jpg',
         features: [
           'Dimensions: 30 mm Bore x 72 mm OD x 19 mm Width',
-          '46% Discount off official MRP with Free Delhivery',
+          '48% Discount off official MRP with Free Delhivery',
         ],
         specifications: {
           'Part Number': '6306-ZZ',
@@ -805,7 +831,7 @@ export const seedDatabase = async () => {
       },
 
       // ---------------------------------------------
-      // FENNER - MAKE (BUSH PULLEY & BELT SECTION) - 46% OFF MRP, DELHIVERY INCLUDED
+      // FENNER - MAKE (BUSH PULLEY & BELT SECTION) - 48% OFF MRP, DELHIVERY INCLUDED
       // ---------------------------------------------
       {
         name: 'Fenner Taper Lock Pulley 200 X 3C (2517) 60mm',
@@ -814,9 +840,9 @@ export const seedDatabase = async () => {
         section: 'Bush Pulley',
         category: catPulleys._id,
         mrp: 4850,
-        discountPercentage: 46,
-        basePrice: 2619,
-        discountPrice: 2619,
+        discountPercentage: 25,
+        basePrice: 3638,
+        discountPrice: 3638,
         deliveryIncluded: true,
         origin: 'Standard',
         serviceType: 'pulley',
@@ -827,7 +853,7 @@ export const seedDatabase = async () => {
           'Pitch Diameter: 200 mm, Number of Grooves: 3 (C Section)',
           'Taper Bush Size: 2517, Finished Bore: 60 mm with standard keyway',
           'High grade grey cast iron GG25 / FG260 with phosphate rust-proofing',
-          '46% Discount off official Fenner MRP with Free Delhivery freight',
+          '48% Discount off official Fenner MRP with Free Delhivery freight',
           'Dynamically balanced for peripheral speeds up to 30 m/s',
         ],
         specifications: {
@@ -852,7 +878,7 @@ export const seedDatabase = async () => {
         section: 'Belt',
         category: catBelts._id,
         mrp: 1250,
-        discountPercentage: 46,
+        discountPercentage: 48,
         basePrice: 675,
         discountPrice: 675,
         deliveryIncluded: true,
@@ -864,7 +890,7 @@ export const seedDatabase = async () => {
         features: [
           'Fenner PB (Precision Built) technology — no matching codes required',
           'C Section, 70 inches inside length',
-          '46% Discount off Fenner price list with Free Delhivery freight',
+          '48% Discount off Fenner price list with Free Delhivery freight',
           'Resistant to heat, oil, ozone, and harsh industrial environments',
         ],
         specifications: {
@@ -888,18 +914,18 @@ export const seedDatabase = async () => {
         section: 'Belt',
         category: catBelts._id,
         mrp: 2750,
-        discountPercentage: 46,
+        discountPercentage: 48,
         basePrice: 1485,
         discountPrice: 1485,
         deliveryIncluded: true,
         origin: 'Standard',
         serviceType: 'belt',
         shortDescription: 'Fenner Heavy Duty Wedge Belt SPC PT 3150 mm. High power transmission metric wedge belt.',
-        fullDescription: 'Fenner SPC PT 3150 provides up to 300% greater power transfer than conventional belts, enabling more compact drive design with fewer belt grooves. 46% off Fenner MRP with free Delhivery logistics.',
+        fullDescription: 'Fenner SPC PT 3150 provides up to 300% greater power transfer than conventional belts, enabling more compact drive design with fewer belt grooves. 48% off Fenner MRP with free Delhivery logistics.',
         mainImage: '/belts/Fenner SPC PT 3150 Power Transmissio.jpg',
         features: [
           'Pitch Length: 3150 mm (SPC Wedge Profile)',
-          '46% Discount off official MRP with Free Delhivery freight',
+          '48% Discount off official MRP with Free Delhivery freight',
           'Engineered for large industrial blowers, compressors, and rolling mills',
         ],
         specifications: {
@@ -916,7 +942,7 @@ export const seedDatabase = async () => {
       },
 
       // ---------------------------------------------
-      // TIMKEN - MAKE (BEARING SECTION - ALL TYPES AVAILABLE) - 46% OFF MRP, DELHIVERY INCLUDED
+      // TIMKEN - MAKE (BEARING SECTION - ALL TYPES AVAILABLE) - 48% OFF MRP, DELHIVERY INCLUDED
       // ---------------------------------------------
       {
         name: 'Timken 6313 Open Type Bearing',
@@ -925,7 +951,7 @@ export const seedDatabase = async () => {
         section: 'Bearing',
         category: catBearings._id,
         mrp: 3600,
-        discountPercentage: 46,
+        discountPercentage: 48,
         basePrice: 1944,
         discountPrice: 1944,
         deliveryIncluded: true,
@@ -937,7 +963,7 @@ export const seedDatabase = async () => {
         features: [
           'Dimensions: 65 mm Bore x 140 mm OD x 33 mm Width',
           'Open type configuration for optimum oil lubrication flow',
-          '46% Discount off official Timken MRP list with Free Delhivery',
+          '48% Discount off official Timken MRP list with Free Delhivery',
           'All types of Timken bearings (Tapered roller, spherical, ball) available on request',
           '100% Genuine Timken with hologram security seal and 100% genuine products guarantee',
         ],
@@ -1289,7 +1315,7 @@ export const seedDatabase = async () => {
         customerRole: 'Plant Maintenance Head',
         company: 'Apex Textiles & Spinning Mills, Coimbatore',
         rating: 5,
-        content: 'BizZolution has transformed our maintenance procurement. Getting 46% off MRP on genuine Fenner C 70 belts and PIX wedge belts with free Delhivery freight has cut our annual transmission maintenance expenses by 35%. Dispatch is always lightning fast.',
+        content: 'BizZolution has transformed our maintenance procurement. Getting 48% off MRP on genuine Fenner C 70 belts and PIX wedge belts with free Delhivery freight has cut our annual transmission maintenance expenses by 35%. Dispatch is always lightning fast.',
         avatar: '',
         displayOrder: 1,
       },

@@ -421,8 +421,8 @@ const DEFAULT_BEARING_PULLEY_CATALOG = [
             subcategoryName: 'Deep Groove Ball Bearings (6200 / 6300 Series)',
             image: verifiedIndustrialImages['bearing-deep-groove'],
             mrp: 320,
-            discountPercentage: 46,
-            wholesalePrice: 173,
+            discountPercentage: 48,
+            wholesalePrice: 166,
             specifications: 'Bore 17mm, OD 40mm, Width 12mm',
             inStock: true,
           },
@@ -435,8 +435,8 @@ const DEFAULT_BEARING_PULLEY_CATALOG = [
             subcategoryName: 'Deep Groove Ball Bearings (6200 / 6300 Series)',
             image: verifiedIndustrialImages['bearing-deep-groove'],
             mrp: 380,
-            discountPercentage: 46,
-            wholesalePrice: 205,
+            discountPercentage: 48,
+            wholesalePrice: 198,
             specifications: 'Bore 20mm, OD 47mm, Width 14mm',
             inStock: true,
           },
@@ -449,8 +449,8 @@ const DEFAULT_BEARING_PULLEY_CATALOG = [
             subcategoryName: 'Deep Groove Ball Bearings (6200 / 6300 Series)',
             image: verifiedIndustrialImages['bearing-deep-groove'],
             mrp: 460,
-            discountPercentage: 46,
-            wholesalePrice: 248,
+            discountPercentage: 48,
+            wholesalePrice: 239,
             specifications: 'Bore 25mm, OD 52mm, Width 15mm',
             inStock: true,
           },
@@ -463,8 +463,8 @@ const DEFAULT_BEARING_PULLEY_CATALOG = [
             subcategoryName: 'Deep Groove Ball Bearings (6200 / 6300 Series)',
             image: verifiedIndustrialImages['bearing-deep-groove'],
             mrp: 580,
-            discountPercentage: 46,
-            wholesalePrice: 313,
+            discountPercentage: 48,
+            wholesalePrice: 302,
             specifications: 'Bore 25mm, OD 62mm, Width 17mm',
             inStock: true,
           },
@@ -477,8 +477,8 @@ const DEFAULT_BEARING_PULLEY_CATALOG = [
             subcategoryName: 'Deep Groove Ball Bearings (6200 / 6300 Series)',
             image: verifiedIndustrialImages['bearing-deep-groove'],
             mrp: 650,
-            discountPercentage: 46,
-            wholesalePrice: 351,
+            discountPercentage: 48,
+            wholesalePrice: 338,
             specifications: 'Power tool / armature pair (12mm & 15mm bore)',
             inStock: true,
           },
@@ -498,8 +498,8 @@ const DEFAULT_BEARING_PULLEY_CATALOG = [
             subcategoryName: 'Heavy Series & Precision Bearings (6400 / 6313 / 7322)',
             image: verifiedIndustrialImages['bearing-heavy'],
             mrp: 1450,
-            discountPercentage: 46,
-            wholesalePrice: 783,
+            discountPercentage: 48,
+            wholesalePrice: 754,
             specifications: 'Bore 25mm, OD 80mm, Width 21mm, C3 Internal Clearance',
             inStock: true,
           },
@@ -512,8 +512,8 @@ const DEFAULT_BEARING_PULLEY_CATALOG = [
             subcategoryName: 'Heavy Series & Precision Bearings (6400 / 6313 / 7322)',
             image: verifiedIndustrialImages['bearing-timken'],
             mrp: 3800,
-            discountPercentage: 46,
-            wholesalePrice: 2052,
+            discountPercentage: 48,
+            wholesalePrice: 1976,
             specifications: 'Bore 65mm, OD 140mm, Width 33mm, 100% Genuine Product',
             inStock: true,
           },
@@ -554,8 +554,8 @@ const DEFAULT_BEARING_PULLEY_CATALOG = [
             subcategoryName: 'Taper Lock Bush Pulleys (SPB / SPC Grooves)',
             image: verifiedIndustrialImages['pulley-taper-bush'],
             mrp: 4800,
-            discountPercentage: 46,
-            wholesalePrice: 2592,
+            discountPercentage: 25,
+            wholesalePrice: 3600,
             specifications: 'PCD 200mm, 3 Grooves C Section, Bush Size 2517',
             inStock: true,
           },
@@ -568,8 +568,8 @@ const DEFAULT_BEARING_PULLEY_CATALOG = [
             subcategoryName: 'Taper Lock Bush Pulleys (SPB / SPC Grooves)',
             image: verifiedIndustrialImages['taper-lock-bush'],
             mrp: 1350,
-            discountPercentage: 46,
-            wholesalePrice: 729,
+            discountPercentage: 25,
+            wholesalePrice: 1013,
             specifications: 'Bore 60mm, Standard Keyway, Split Taper Construction',
             inStock: true,
           },
@@ -652,11 +652,6 @@ export const parsePdfCatalogText = async (filePath, originalName, directText = '
     detectedBrand = 'HCH';
   }
 
-  // B2B Discount Percentage: Use custom discount if supplied by admin, else default
-  const standardDiscount = (customDiscount !== null && customDiscount !== undefined && !isNaN(Number(customDiscount)))
-    ? Number(customDiscount)
-    : (detectedBrand === 'SKF' ? 10 : 46);
-
   // If text contains belt price list items (e.g. A 18 230.00, SPC 2360 2225.00, etc.)
   const isBeltCatalog =
     detectedBrand === 'PIX' ||
@@ -664,6 +659,25 @@ export const parsePdfCatalogText = async (filePath, originalName, directText = '
     upperText.includes('WEDGE BELT') ||
     upperText.includes('PIX TRANSMISSIONS') ||
     upperName.includes('BELT');
+
+  const isPulleyCatalog =
+    upperText.includes('PULLEY') ||
+    upperName.includes('PULLEY') ||
+    upperText.includes('TAPER BUSH') ||
+    upperName.includes('BUSH');
+
+  // B2B Discount Percentage: Belt 48%, Pulley 25%, Bearing 48%, SKF 10%
+  const defaultForBrandOrCat = detectedBrand === 'SKF'
+    ? 10
+    : isPulleyCatalog
+    ? 25
+    : (isBeltCatalog || detectedBrand === 'PIX')
+    ? 48
+    : 48;
+
+  const standardDiscount = (customDiscount !== null && customDiscount !== undefined && !isNaN(Number(customDiscount)))
+    ? Number(customDiscount)
+    : defaultForBrandOrCat;
 
   let parsedCategories = [];
 

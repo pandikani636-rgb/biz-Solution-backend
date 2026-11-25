@@ -53,29 +53,40 @@ export const getSettings = async (req, res, next) => {
         needsSave = true;
       }
       if (settings.existingUserDiscountPercentage === undefined || settings.existingUserDiscountPercentage === null) {
-        settings.existingUserDiscountPercentage = 46;
+        settings.existingUserDiscountPercentage = 48;
         needsSave = true;
       }
       if (settings.newUserDiscountPercentage === undefined || settings.newUserDiscountPercentage === null) {
         settings.newUserDiscountPercentage = 40;
         needsSave = true;
       }
+      if (!settings.categoryDiscounts || (settings.categoryDiscounts instanceof Map ? settings.categoryDiscounts.size === 0 : Object.keys(settings.categoryDiscounts).length === 0)) {
+        settings.categoryDiscounts = {
+          'Belts': 48,
+          'Power Transmission Belts': 48,
+          'Pulleys': 25,
+          'Bush Pulleys & Taper Bushes': 25,
+          'Bearings': 48,
+          'Industrial Bearings': 48,
+        };
+        needsSave = true;
+      }
       if (!settings.brandDiscounts || (settings.brandDiscounts instanceof Map ? settings.brandDiscounts.size === 0 : Object.keys(settings.brandDiscounts).length === 0)) {
         settings.brandDiscounts = {
-          'PIX': 46,
-          'JK Fenner': 46,
-          'Diamond': 46,
-          'NBC': 46,
-          'FAG': 46,
+          'PIX': 48,
+          'JK Fenner': 25,
+          'Diamond': 48,
+          'NBC': 48,
+          'FAG': 48,
           'SKF': 10,
-          'Timken': 46,
-          'NTN': 46,
-          'Siemens': 46,
-          'Crompton': 46,
-          'ABB': 46,
-          'Bharat Bijlee': 46,
-          'Shanthi Gears': 46,
-          'Vignesh Gears': 46,
+          'Timken': 48,
+          'NTN': 48,
+          'Siemens': 48,
+          'Crompton': 48,
+          'ABB': 48,
+          'Bharat Bijlee': 48,
+          'Shanthi Gears': 48,
+          'Vignesh Gears': 48,
         };
         needsSave = true;
       }

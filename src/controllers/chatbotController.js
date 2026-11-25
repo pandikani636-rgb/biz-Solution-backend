@@ -86,8 +86,8 @@ export const handleChatbotQuery = async (req, res, next) => {
       cleanQuery.includes('தள்ளுபடி')
     ) {
       reply = isTamil
-        ? `**எங்கள் மொத்த விலை தள்ளுபடி கொள்கை:**\n\n• **PIX, NBC, HCH, Fenner & Timken**: அதிகாரப்பூர்வ MRP பட்டியலிலிருந்து **45% - 48% நேரடி தள்ளுபடி**.\n• **SKF**: உலகளாவிய கடுமையான தரத்துடன் **10% நேரடி தள்ளுபடி**.\n• **ஜிஎஸ்டி இன்வாய்ஸ்**: ஒவ்வொரு கொள்முதலுக்கும் 18% உள்ளீட்டு வரி வரவு (ITC).\n• **புதிய வாடிக்கையாளர் விலை முறை**: புதிதாகப் பதிவு செய்யும் வாடிக்கையாளர்களுக்கு பிரத்யேக சதவீத விகித முறை பொருந்தும், ஏற்கனவே உள்ள பழைய வாடிக்கையாளர்களுக்கு இந்த கூடுதல் கட்டணம் விதிக்கப்படாது!`
-        : `**Wholesale Pricing & Discount Policy:**\n\n• **Standard Makes (PIX, NBC, HCH, Fenner, Timken)**: Massive **45% - 48% OFF MRP List**.\n• **SKF Genuine**: Strictly **Flat 10% OFF MRP** with factory authentication.\n• **GST Tax Invoices**: 18% Input Tax Credit provided on every purchase.\n• **New User Pricing Rate**: Newly registered clients receive an onboarding percentage-based rate, whereas existing users continue at standard wholesale rates without any surcharge!`;
+        ? `**எங்கள் மொத்த விலை தள்ளுபடி கொள்கை:**\n\n• **பெல்ட்கள் (Belts - PIX & Industrial V-Belts)**: **48% நேரடி தள்ளுபடி**.\n• **புல்லிகள் (Pulleys - JK Fenner Bush Pulleys)**: **25% நேரடி தள்ளுபடி**.\n• **பேரிங்ஸ் (Bearings - NBC, Timken, HCH, FAG)**: **48% நேரடி தள்ளுபடி**.\n• **SKF**: தொழிற்சாலை அங்கீகாரத்துடன் **10% நேரடி தள்ளுபடி**.\n• **ஜிஎஸ்டி இன்வாய்ஸ்**: ஒவ்வொரு கொள்முதலுக்கும் **18% GST Input Tax Credit (ITC)**.`
+        : `**Wholesale Pricing & Discount Policy:**\n\n• **Belts (PIX & Industrial V-Belts)**: Massive **48% OFF MRP List**.\n• **Pulleys (JK Fenner Bush Pulleys & Taper Bushes)**: **25% OFF MRP List**.\n• **Bearings (NBC, Timken, HCH, FAG)**: Massive **48% OFF MRP List**.\n• **SKF Genuine**: Strictly **Flat 10% OFF MRP** with factory authentication.\n• **GST Tax Invoices**: **18% Input Tax Credit** provided on every purchase.`;
       suggestions = ['Calculate Net Price', 'Request Bulk RFQ', 'Tracked Shipping'];
       quickLink = { label: 'Live MRP Calculator', url: '/price-list' };
     }
