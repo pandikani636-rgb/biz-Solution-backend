@@ -33,6 +33,7 @@ export const getDashboardOverview = async (req, res, next) => {
       completedBookings,
       cancelledBookings,
       totalEnquiries,
+      totalQuotations,
       revenueStats,
       recentBookings,
       recentCustomers,
@@ -48,6 +49,7 @@ export const getDashboardOverview = async (req, res, next) => {
       Booking.countDocuments({ ...dateFilter, status: BOOKING_STATUS.COMPLETED }),
       Booking.countDocuments({ ...dateFilter, status: BOOKING_STATUS.CANCELLED }),
       ContactEnquiry.countDocuments(dateFilter),
+      ContactEnquiry.countDocuments({ ...dateFilter, enquiryType: { $in: ['rfq', 'bulk_order'] } }),
       Payment.aggregate([
         {
           $match: {
@@ -107,6 +109,7 @@ export const getDashboardOverview = async (req, res, next) => {
           pendingPaymentAmount,
           totalRefunds,
           totalEnquiries,
+          totalQuotations,
         },
         recentBookings,
         recentCustomers,

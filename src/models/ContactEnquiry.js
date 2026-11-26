@@ -90,6 +90,67 @@ const contactEnquirySchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    items: [
+      {
+        category: { type: String, default: '' },
+        partNumber: { type: String, default: '' },
+        name: { type: String, default: '' },
+        description: { type: String, default: '' },
+        hsn: { type: String, default: '8482' },
+        quantity: { type: Number, default: 1 },
+        mrp: { type: Number, default: 0 },
+        discountPercentage: { type: Number, default: 48 },
+        rate: { type: Number, default: 0 },
+        amount: { type: Number, default: 0 },
+      },
+    ],
+    deliveryCharge: {
+      type: Number,
+      default: 0,
+    },
+    subtotal: {
+      type: Number,
+      default: 0,
+    },
+    taxRate: {
+      type: Number,
+      default: 18,
+    },
+    taxAmount: {
+      type: Number,
+      default: 0,
+    },
+    totalAmount: {
+      type: Number,
+      default: 0,
+    },
+    paymentTerms: {
+      type: String,
+      default: '7 DAYS CREDIT',
+    },
+    deliveryTerms: {
+      type: String,
+      default: 'SELF TO SRIVIL',
+    },
+    customerImages: [
+      {
+        url: { type: String, default: '' },
+        filename: { type: String, default: '' },
+        uploadedAt: { type: Date, default: Date.now },
+      },
+    ],
+    invoiceGenerated: {
+      type: Boolean,
+      default: false,
+    },
+    invoiceNumber: {
+      type: String,
+      default: '',
+    },
+    invoiceDate: {
+      type: Date,
+      default: null,
+    },
     approvedAt: {
       type: Date,
       default: null,

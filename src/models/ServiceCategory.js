@@ -39,6 +39,10 @@ const serviceCategorySchema = new mongoose.Schema(
       default: true,
       index: true,
     },
+    discountPercentage: {
+      type: Number,
+      default: 48,
+    },
     metaTitle: {
       type: String,
       default: '',
