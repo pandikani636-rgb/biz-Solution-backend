@@ -1186,6 +1186,21 @@ export const getPublicPdfCatalog = async (req, res, next) => {
       activeCatalogs = await PdfCatalog.find().sort({ createdAt: -1 });
     }
 
+    // If a specific brand or category is queried, prioritize matching catalog to top
+    if (brand && brand !== 'ALL' && activeCatalogs && activeCatalogs.length > 0) {
+      const bLower = brand.toLowerCase().trim();
+      const brandMatchIdx = activeCatalogs.findIndex(
+        (c) =>
+          (c.brand && c.brand.toLowerCase() === bLower) ||
+          (c.categoryName && c.categoryName.toLowerCase().includes(bLower)) ||
+          (c.title && c.title.toLowerCase().includes(bLower))
+      );
+      if (brandMatchIdx > 0) {
+        const [matched] = activeCatalogs.splice(brandMatchIdx, 1);
+        activeCatalogs.unshift(matched);
+      }
+    }
+
     if (!activeCatalogs || activeCatalogs.length === 0) {
       // Find sample-catalog.pdf on disk if available
       const candidatePaths = [
