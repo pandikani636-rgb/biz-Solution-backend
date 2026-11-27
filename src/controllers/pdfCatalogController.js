@@ -1186,18 +1186,28 @@ export const getPublicPdfCatalog = async (req, res, next) => {
       activeCatalogs = await PdfCatalog.find().sort({ createdAt: -1 });
     }
 
-    // If a specific brand or category is queried, prioritize matching catalog to top
+    // If a specific brand is queried, filter to only matching brand catalogs
     if (brand && brand !== 'ALL' && activeCatalogs && activeCatalogs.length > 0) {
       const bLower = brand.toLowerCase().trim();
-      const brandMatchIdx = activeCatalogs.findIndex(
+      const brandMatches = activeCatalogs.filter(
         (c) =>
-          (c.brand && c.brand.toLowerCase() === bLower) ||
+          (c.brand && (c.brand.toLowerCase() === bLower || c.brand.toLowerCase().includes(bLower) || bLower.includes(c.brand.toLowerCase()))) ||
           (c.categoryName && c.categoryName.toLowerCase().includes(bLower)) ||
           (c.title && c.title.toLowerCase().includes(bLower))
       );
-      if (brandMatchIdx > 0) {
-        const [matched] = activeCatalogs.splice(brandMatchIdx, 1);
-        activeCatalogs.unshift(matched);
+      if (brandMatches.length > 0) {
+        activeCatalogs = brandMatches;
+      }
+    } else if (category && category !== 'ALL' && activeCatalogs && activeCatalogs.length > 0) {
+      // If a category is queried, filter to catalogs matching that category
+      const cLower = category.toLowerCase().trim();
+      const catMatches = activeCatalogs.filter(
+        (c) =>
+          (c.categoryName && (c.categoryName.toLowerCase().includes(cLower) || cLower.includes(c.categoryName.toLowerCase()))) ||
+          (c.title && c.title.toLowerCase().includes(cLower))
+      );
+      if (catMatches.length > 0) {
+        activeCatalogs = catMatches;
       }
     }
 
@@ -1407,17 +1417,24 @@ export const getPublicPdfCatalog = async (req, res, next) => {
     });
 
     const primaryCatalog = activeCatalogs[0];
-    const consolidatedTitle = activeCatalogs.length > 1
+    const isSpecificBrandOrCat = Boolean((brand && brand !== 'ALL') || (category && category !== 'ALL'));
+    const consolidatedTitle = (activeCatalogs.length > 1 && !isSpecificBrandOrCat)
       ? `All Industrial Catalogs (${activeCatalogs.length} Active Catalogs)`
       : primaryCatalog.title;
+    const consolidatedFileName = (activeCatalogs.length > 1 && !isSpecificBrandOrCat)
+      ? 'Multiple-Industrial-Catalogs.pdf'
+      : primaryCatalog.fileName;
 
     res.json({
       success: true,
       data: {
         _id: primaryCatalog._id,
         title: consolidatedTitle,
-        fileName: activeCatalogs.length > 1 ? 'Multiple-Industrial-Catalogs.pdf' : primaryCatalog.fileName,
+        fileName: consolidatedFileName,
         fileUrl: primaryCatalog.fileUrl || '/sample-catalog.pdf',
+        brand: primaryCatalog.brand || '',
+        categoryName: primaryCatalog.categoryName || '',
+        discountPercentage: primaryCatalog.discountPercentage ?? 48,
         updatedAt: primaryCatalog.updatedAt,
         totalCategories: filteredCategories.length,
         totalProducts: totalProductsCount,
