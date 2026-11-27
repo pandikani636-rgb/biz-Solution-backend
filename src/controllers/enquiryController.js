@@ -39,8 +39,8 @@ export const submitEnquiry = async (req, res, next) => {
         createdAt: { $gte: startOfMonth },
       });
       monthlySequence = countThisMonth + 1;
-      // Sequential format: [Sequential Number]/[Month]/[Year] (e.g. 1/11/26)
-      quotationNumber = `${monthlySequence}/${month}/${year}`;
+      // Sequential format: QT-[Sequential Number]-[Month]-[Year] (e.g. QT-22-11-26)
+      quotationNumber = `QT-${monthlySequence}-${month}-${year}`;
     }
 
     // Try finding customer account by token or email
