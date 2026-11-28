@@ -67,13 +67,17 @@ export const uploadUserImage = async (req, res, next) => {
       partNotes: noteText,
     });
 
-    // Notify administrators
-    await notifyAdmins({
-      title: 'New User Part Image Upload',
-      message: `${name} uploaded a part specification photo (${megapixels > 0 ? megapixels + ' MP' : req.file.originalname}) from ${city}.`,
-      type: 'system',
-      link: '/admin/user-uploads',
-    });
+    // Notify administrators safely
+    try {
+      await notifyAdmins({
+        title: 'New User Part Image Upload',
+        message: `${personName} uploaded a part specification photo (${megapixels > 0 ? megapixels + ' MP' : req.file.originalname}) from ${loc}.`,
+        type: 'system',
+        link: '/admin/user-uploads',
+      });
+    } catch (notifErr) {
+      console.warn('[Notification Error]:', notifErr.message);
+    }
 
     res.status(201).json({
       success: true,

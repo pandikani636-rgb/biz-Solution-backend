@@ -1037,18 +1037,30 @@ export const uploadPdfCatalog = async (req, res, next) => {
           : null;
         const reqBrand = brand || null;
 
-        const {
-          title: parsedTitle,
-          categories,
-          totalCategories,
-          totalProducts,
-          brand: parsedBrand,
-          discountPercentage: parsedDiscount,
-        } = await parsePdfCatalogText(file.path, file.originalname, '', reqDiscount, reqBrand);
+        let parsedTitle = '';
+        let categories = [];
+        let totalCategories = 0;
+        let totalProducts = 0;
+        let parsedBrand = 'General';
+        let parsedDiscount = 46;
+
+        if (file.originalname.toLowerCase().endsWith('.pdf')) {
+          try {
+            const parsed = await parsePdfCatalogText(file.path, file.originalname, '', reqDiscount, reqBrand);
+            parsedTitle = parsed.title;
+            categories = parsed.categories || [];
+            totalCategories = parsed.totalCategories || 0;
+            totalProducts = parsed.totalProducts || 0;
+            parsedBrand = parsed.brand || 'General';
+            parsedDiscount = parsed.discountPercentage ?? 46;
+          } catch (err) {
+            console.warn(`[PDF parse notice for ${file.originalname}]:`, err.message);
+          }
+        }
 
         const catalogTitle = (pdfFiles.length === 1 && title)
           ? title
-          : (parsedTitle || file.originalname.replace(/\.pdf$/i, ''));
+          : (parsedTitle || file.originalname.replace(/\.[a-zA-Z0-9]+$/i, ''));
         const finalBrand = reqBrand || parsedBrand || 'General';
         const finalDiscount = reqDiscount !== null ? reqDiscount : (parsedDiscount ?? 46);
 

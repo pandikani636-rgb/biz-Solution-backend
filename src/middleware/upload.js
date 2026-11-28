@@ -38,11 +38,19 @@ const fileFilter = (req, file, cb) => {
     'image/svg+xml',
     'image/gif',
     'application/pdf',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/msword',
+    'text/csv',
+    'text/plain',
   ];
-  if (allowedMimeTypes.includes(file.mimetype) || file.originalname.toLowerCase().endsWith('.pdf')) {
+  const ext = path.extname(file.originalname).toLowerCase();
+  const allowedExts = ['.pdf', '.jpg', '.jpeg', '.png', '.webp', '.svg', '.xlsx', '.xls', '.docx', '.doc', '.csv', '.txt'];
+  if (allowedMimeTypes.includes(file.mimetype) || allowedExts.includes(ext)) {
     cb(null, true);
   } else {
-    cb(new Error('Invalid file type. Only JPEG, PNG, WEBP images and PDF documents are allowed.'), false);
+    cb(new Error('Invalid file type. Allowed files: PDF, Excel (.xlsx, .xls), Word (.docx, .doc), CSV, TXT, and Images.'), false);
   }
 };
 
