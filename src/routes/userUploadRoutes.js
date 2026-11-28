@@ -14,9 +14,12 @@ const router = express.Router();
 // Public user image upload (authenticated or guest with details)
 router.post('/user-image', optionalAuthenticate, upload.single('image'), uploadUserImage);
 
-// Admin tracking endpoints
+// Admin tracking endpoints (supports both / and /admin paths)
+router.get('/', authenticate, authorize(ROLES.ADMIN, ROLES.STAFF), getAdminUserUploads);
 router.get('/admin', authenticate, authorize(ROLES.ADMIN, ROLES.STAFF), getAdminUserUploads);
 router.patch('/admin/:id', authenticate, authorize(ROLES.ADMIN), updateUserUploadStatus);
+router.patch('/:id', authenticate, authorize(ROLES.ADMIN), updateUserUploadStatus);
 router.delete('/admin/:id', authenticate, authorize(ROLES.ADMIN), deleteUserUpload);
+router.delete('/:id', authenticate, authorize(ROLES.ADMIN), deleteUserUpload);
 
 export default router;

@@ -1,4 +1,5 @@
 import { UserImageUpload } from '../models/UserImageUpload.js';
+import { ContactEnquiry } from '../models/ContactEnquiry.js';
 import { processUploadedFile } from '../middleware/upload.js';
 import { notifyAdmins, createNotification } from '../services/notificationService.js';
 
@@ -92,7 +93,7 @@ export const uploadUserImage = async (req, res, next) => {
 
 export const getAdminUserUploads = async (req, res, next) => {
   try {
-    const { status, city, search, page = 1, limit = 12 } = req.query;
+    const { status, city, search, page = 1, limit = 50 } = req.query;
     const query = {};
 
     if (status && status !== 'all') {
@@ -114,21 +115,49 @@ export const getAdminUserUploads = async (req, res, next) => {
     }
 
     const pageNum = parseInt(page, 10) || 1;
-    const limitNum = parseInt(limit, 10) || 12;
+    const limitNum = parseInt(limit, 10) || 50;
     const skip = (pageNum - 1) * limitNum;
 
-    const [uploads, total] = await Promise.all([
+    const [uploads, total, enquiriesWithImages] = await Promise.all([
       UserImageUpload.find(query).populate('user', 'name email phone avatar').sort({ createdAt: -1 }).skip(skip).limit(limitNum),
       UserImageUpload.countDocuments(query),
+      ContactEnquiry.find({ 'customerImages.0': { $exists: true } }).sort({ createdAt: -1 }).limit(30),
     ]);
+
+    // Format any customerImages from ContactEnquiry into unified upload cards
+    const mappedEnquiryUploads = [];
+    enquiriesWithImages.forEach((eq) => {
+      (eq.customerImages || []).forEach((cImg, idx) => {
+        mappedEnquiryUploads.push({
+          _id: `${eq._id}_img_${idx}`,
+          customerName: eq.name,
+          contactPerson: eq.name,
+          customerEmail: eq.email,
+          customerPhone: eq.phone,
+          companyName: eq.companyName,
+          city: eq.deliveryLocation || 'Srivilliputtur',
+          imageUrl: cImg.url,
+          originalFileName: cImg.filename || `Quotation-Photo-${eq.quotationNumber || 'RFQ'}.jpg`,
+          partNotes: `Quotation #${eq.quotationNumber || 'N/A'}: ${eq.partNumber || eq.subject || 'Industrial component spec'}`,
+          status: eq.status === 'approved' ? 'reviewed' : 'pending',
+          createdAt: cImg.uploadedAt || eq.createdAt,
+          quotationId: eq._id,
+        });
+      });
+    });
+
+    // Merge direct UserImageUpload records with Enquiry customer images
+    const combinedUploads = [...uploads, ...mappedEnquiryUploads].sort(
+      (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+    );
 
     res.json({
       success: true,
-      data: uploads,
+      data: combinedUploads,
       pagination: {
-        total,
+        total: total + mappedEnquiryUploads.length,
         page: pageNum,
-        pages: Math.ceil(total / limitNum),
+        pages: Math.ceil((total + mappedEnquiryUploads.length) / limitNum),
         limit: limitNum,
       },
     });
