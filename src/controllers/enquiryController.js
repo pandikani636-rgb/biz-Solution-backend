@@ -338,12 +338,20 @@ export const rejectQuotation = async (req, res, next) => {
 
 export const getMyCustomerQuotations = async (req, res, next) => {
   try {
-    const query = {
-      $or: [{ customer: req.user._id }, { email: req.user.email.toLowerCase() }],
-      enquiryType: { $in: ['rfq', 'bulk_order'] },
-    };
+    const userEmail = req.user.email ? req.user.email.toLowerCase() : '';
+    const userPhone = req.user.phone || '';
+    
+    const orConditions = [{ customer: req.user._id }];
+    if (userEmail) {
+      orConditions.push({ email: userEmail });
+    }
+    if (userPhone) {
+      orConditions.push({ phone: userPhone });
+    }
 
-    const quotations = await ContactEnquiry.find(query).sort({ createdAt: -1 });
+    const quotations = await ContactEnquiry.find({
+      $or: orConditions,
+    }).sort({ createdAt: -1 });
 
     res.json({
       success: true,

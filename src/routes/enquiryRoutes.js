@@ -13,12 +13,12 @@ import {
   sendQuotationEmail,
   getQuotationStats,
 } from '../controllers/enquiryController.js';
-import { authenticate, authorize } from '../middleware/auth.js';
+import { authenticate, authorize, optionalAuthenticate } from '../middleware/auth.js';
 import { ROLES } from '../config/constants.js';
 
 const router = express.Router();
 
-router.post('/', submitEnquiry);
+router.post('/', optionalAuthenticate, submitEnquiry);
 router.get('/my-quotations', authenticate, getMyCustomerQuotations);
 router.get('/stats', authenticate, authorize(ROLES.ADMIN, ROLES.STAFF), getQuotationStats);
 router.post('/admin-create', authenticate, authorize(ROLES.ADMIN), adminCreateQuotation);

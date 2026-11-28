@@ -9,18 +9,19 @@ export const uploadUserImage = async (req, res, next) => {
     }
 
     const {
+      name = '',
       companyName = '',
-      customerName,
-      contactPerson,
-      customerEmail,
-      email,
-      customerPhone,
-      phone,
-      city,
-      location,
+      customerName = '',
+      contactPerson = '',
+      customerEmail = '',
+      email = '',
+      customerPhone = '',
+      phone = '',
+      city = '',
+      location = '',
       gstNumber = '',
-      partNotes,
-      notes,
+      partNotes = '',
+      notes = '',
       width,
       height,
     } = req.body;
@@ -40,10 +41,10 @@ export const uploadUserImage = async (req, res, next) => {
 
     const fileUrl = await processUploadedFile(req.file, req);
 
-    const personName = contactPerson || customerName || (req.user ? req.user.name : 'Guest Customer');
+    const personName = name || contactPerson || customerName || (req.user ? req.user.name : 'Guest Customer');
     const userEmail = email || customerEmail || (req.user ? req.user.email : '');
     const userPhone = phone || customerPhone || (req.user ? req.user.phone : '');
-    const loc = location || city || 'Not specified';
+    const loc = location || city || 'Srivilliputtur / Tamil Nadu';
     const noteText = notes || partNotes || '';
 
     const record = await UserImageUpload.create({
