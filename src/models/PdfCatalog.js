@@ -95,6 +95,14 @@ const pdfCatalogSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    isAdminOnly: {
+      type: Boolean,
+      default: false,
+    },
+    fileType: {
+      type: String,
+      default: 'catalog', // 'catalog' | 'internal_doc' | 'price_sheet' | 'supplier_contract' | 'admin_file'
+    },
   },
   {
     timestamps: true,

@@ -965,7 +965,9 @@ export const uploadPdfCatalog = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Please upload at least one valid PDF document or extracted catalog data.' });
     }
 
-    const { title, categoryName, categoryId, discountPercentage, brand } = req.body;
+    const { title, categoryName, categoryId, discountPercentage, brand, isAdminOnly, fileType } = req.body;
+    const isReqAdminOnly = isAdminOnly === true || isAdminOnly === 'true' || isAdminOnly === 1 || isAdminOnly === '1';
+    const reqFileType = fileType || (isReqAdminOnly ? 'internal_doc' : 'catalog');
     const processedCatalogs = [];
     let grandTotalProducts = 0;
     let grandTotalCategories = 0;
@@ -980,6 +982,10 @@ export const uploadPdfCatalog = async (req, res, next) => {
           ? Number(item.discountPercentage)
           : (discountPercentage !== undefined && discountPercentage !== null && discountPercentage !== '' ? Number(discountPercentage) : null);
         const reqBrand = item.brand || brand || null;
+        const itemAdminOnly = item.isAdminOnly !== undefined
+          ? (item.isAdminOnly === true || item.isAdminOnly === 'true' || item.isAdminOnly === 1 || item.isAdminOnly === '1')
+          : isReqAdminOnly;
+        const itemFileType = item.fileType || reqFileType;
 
         const {
           title: parsedTitle,
@@ -1008,6 +1014,8 @@ export const uploadPdfCatalog = async (req, res, next) => {
           categories,
           uploadedBy: req.user ? req.user._id : null,
           isActive: true,
+          isAdminOnly: itemAdminOnly,
+          fileType: itemFileType,
         });
 
         processedCatalogs.push(catalog);
@@ -1058,6 +1066,8 @@ export const uploadPdfCatalog = async (req, res, next) => {
           categories,
           uploadedBy: req.user ? req.user._id : null,
           isActive: true,
+          isAdminOnly: isReqAdminOnly,
+          fileType: reqFileType,
         });
 
         processedCatalogs.push(catalog);
@@ -1170,20 +1180,47 @@ export const togglePdfCatalogActive = async (req, res, next) => {
   }
 };
 
+export const togglePdfCatalogAdminOnly = async (req, res, next) => {
+  try {
+    const catalog = await PdfCatalog.findById(req.params.id);
+    if (!catalog) {
+      return res.status(404).json({ success: false, message: 'Document/Catalog not found' });
+    }
+
+    catalog.isAdminOnly = !catalog.isAdminOnly;
+    if (catalog.isAdminOnly && catalog.fileType === 'catalog') {
+      catalog.fileType = 'internal_doc';
+    } else if (!catalog.isAdminOnly && catalog.fileType === 'internal_doc') {
+      catalog.fileType = 'catalog';
+    }
+    await catalog.save();
+
+    res.json({
+      success: true,
+      message: catalog.isAdminOnly
+        ? `Document '${catalog.title}' is now marked as Admin Only (Private) — hidden from public catalog.`
+        : `Document '${catalog.title}' is now Public — accessible in the public products catalog.`,
+      data: catalog,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const getPublicPdfCatalog = async (req, res, next) => {
   try {
     const { search, category, brand, subcategory, catalogId } = req.query;
 
-    let catalogFilter = { isActive: true };
+    let catalogFilter = { isActive: true, isAdminOnly: { $ne: true } };
     if (catalogId && catalogId !== 'all') {
-      catalogFilter = { _id: catalogId };
+      catalogFilter = { _id: catalogId, isActive: true, isAdminOnly: { $ne: true } };
     }
 
     let activeCatalogs = await PdfCatalog.find(catalogFilter).sort({ createdAt: -1 });
 
     if (!activeCatalogs || activeCatalogs.length === 0) {
-      // If none active under filter, check if any catalog exists in database
-      activeCatalogs = await PdfCatalog.find().sort({ createdAt: -1 });
+      // If none active under filter, check if any non-admin catalog exists
+      activeCatalogs = await PdfCatalog.find({ isAdminOnly: { $ne: true } }).sort({ createdAt: -1 });
     }
 
     // If a specific brand is queried, filter to only matching brand catalogs
